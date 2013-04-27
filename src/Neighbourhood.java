@@ -1,7 +1,8 @@
 public class Neighbourhood
 {
 	//Data members
-	private static String myId;
+	// i think these must all be keys(ariel)
+	private static int myId;
 	private static String myIp;
 	
 	private static String sucId;
@@ -18,14 +19,14 @@ public class Neighbourhood
 	
 	private static String swarmSize;
 	
-	private final String superNode = "lkjlk"; //node to contact first 
+	private final String superNodeIP = "lkjlk"; //node to contact first 
 
 	//Functions
-	public static synchronized String getMyId() {
+	public static synchronized int getMyId() {
 		return myId;
 	}
 
-	public static synchronized void setMyId(String myId) {
+	public static synchronized void setMyId(int myId) {
 		Neighbourhood.myId = myId;
 	}
 
@@ -109,8 +110,8 @@ public class Neighbourhood
 		Neighbourhood.swarmSize = swarmSize;
 	}
 
-	public String getSuperNode() {
-		return superNode;
+	public String getSuperNodeIP() {
+		return superNodeIP;
 	}
 	
 
