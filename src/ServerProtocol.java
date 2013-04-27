@@ -20,15 +20,15 @@ public class ServerProtocol {
     {
     	int intInput = Integer.parseInt(input);
     	
-    	if (intInput == 5)
-    		return Integer.toString(neighbourhood.getA());
-    	else
-    	{
-    		neighbourhood.setA(intInput);
-    		return "3";
-    	}
+//    	if (intInput == 5)
+//    		return Integer.toString(neighbourhood.getA());
+//    	else
+//    	{
+//    		neighbourhood.setA(intInput);
+//    		return "3";
+//    	}
     	  	
-    	//return null;
+    	return null;
     }
     	
     	

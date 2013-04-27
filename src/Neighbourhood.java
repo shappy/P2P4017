@@ -108,6 +108,10 @@ public class Neighbourhood
 	public static synchronized void setSwarmSize(String swarmSize) {
 		Neighbourhood.swarmSize = swarmSize;
 	}
+
+	public String getSuperNode() {
+		return superNode;
+	}
 	
 
 }
