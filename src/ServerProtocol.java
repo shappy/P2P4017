@@ -21,10 +21,10 @@ public class ServerProtocol {
     	int intInput = Integer.parseInt(input);
     	
     	if (intInput == 5)
-    		return Integer.toString(neighbourhood.getA());
+    		return neighbourhood.getMyId();
     	else
     	{
-    		neighbourhood.setA(intInput);
+    		neighbourhood.setMyId(input);
     		return "3";
     	}
     	  	
