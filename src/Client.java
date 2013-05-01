@@ -11,7 +11,7 @@ public class Client implements Runnable
 {
 	
 	Thread t;
-	private checkAlive maintainNeighbourhood; // greg
+	private CheckAlive neighbourhoodWatch; // greg
 	Socket socket = null;
 	PrintWriter sender = null;
 	BufferedReader receiver = null;
@@ -20,7 +20,6 @@ public class Client implements Runnable
 	public Client()
 	{
 		t = new Thread(this);
-		maintainNeighbourhood = new checkAlive();//greg
 		t.start();
 	}
 	
@@ -58,12 +57,26 @@ public class Client implements Runnable
 			}
 	        
 		}	
+		// TODO Tell peeps you're in the hood
+
+		
+		//Joined overlay, watch neighbours
+		neighbourhoodWatch = new CheckAlive();//greg
+		
 		
 		// TODO Carry on with calls the client must make
 		// 
 		//
-		// 
-		// 
+		//
+		//
+		// ETAI code for distributing file keys
+		//TODO hash the files that you own
+		//TODO loop this function for as many files as you have
+		//TODO a check to redistribute file keys. This includes toggling a flag after a download completes 
+		protocol.distributeFileKey("", socket);
+		
+		//TODO Prompted by the user who desires downloading a specific key
+		protocol.RetreiveFileKeyList("", socket);
 		
 		
 		

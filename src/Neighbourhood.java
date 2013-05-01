@@ -2,7 +2,7 @@ public class Neighbourhood
 {
 	//Data members
 	// i think these must all be keys(ariel)
-	private static int myId;
+	private static String myId;
 	private static String myIp;
 	
 	private static String sucId;
@@ -22,11 +22,11 @@ public class Neighbourhood
 	private final String superNodeIP = "lkjlk"; //node to contact first 
 
 	//Functions
-	public static synchronized int getMyId() {
+	public static synchronized String getMyId() {
 		return myId;
 	}
 
-	public static synchronized void setMyId(int myId) {
+	public static synchronized void setMyId(String myId) {
 		Neighbourhood.myId = myId;
 	}
 

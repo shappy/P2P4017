@@ -16,7 +16,7 @@ public class ClientProtocol
 	private boolean isFirstMessage = true;
 	private String [] string_array = null;
 	
-	Socket socket = new Socket();//initialise socket object to use throughout
+	//Socket socket = new Socket();//initialise socket object to use throughout
 	PrintWriter sender = null;//init sender
 	BufferedReader receiver = null;//init receiver
 	String fileKey = null;
@@ -61,20 +61,17 @@ public class ClientProtocol
 			
 			if (suc_key > temp_key && temp_key > pre_key) // if we are sitting in between the 2 we can slot in and exit
 			{
-				Neighbourhood.setMyId(temp_key);
+				Neighbourhood.setMyId(Integer.toString(temp_key));
 				return null;
 			}
 			else if (suc_key == temp_key) // if the key is taken, try the next sequential slot
 				temp_key = temp_key + 1;
 		}
 		return getIP(message);
-		
-
 	}
 	
-
 	//Macro function for distributing a single file key
-	public void distributeFileKey(String fileKey)
+	public void distributeFileKey(String fileKey, Socket socket)
 	{
 		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
 		boolean isNodeFound = false;
@@ -106,13 +103,13 @@ public class ClientProtocol
 			}
 			while(!isNodeFound);//Exit loop when storage node is found
 			
-			isKeyStored = storeKey(fileKey);//Init comms, and send fileKey to the found node.
+			isKeyStored = storeKey(fileKey, socket);//Init comms, and send fileKey to the found node.
 											//returns true if receive ACK 
 			isNodeFound = false;//If not ACKed, must reset inner loop and continue with search for node.
 		}
 	}
 	
-	public void RetreiveFileKeyList(String fileKey)
+	public void RetreiveFileKeyList(String fileKey, Socket socket)
 	{
 		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
 		boolean isNodeFound = false;
@@ -211,26 +208,32 @@ public class ClientProtocol
 		
 		switch(temp.length)//Depending on message spaces, know the format of the message
 		{
-			case 1: command_part = temp[0];
+			case 1: 
+				command_part = temp[0];
+				break;
+			case 2: 
+				command_part = temp[0];
+				ip_part = temp[1];
+				break;
+			case 3: 
+				command_part = temp[0];
+				if (command_part.equals("NODESWITHFILE"))//Checks scenario of only 1 IP being
+				{										 //being returned - ambiguity resolution		
+					keyList.add(temp[1]); 
 					break;
-			case 2: command_part = temp[0];
-					ip_part = temp[1];
-					break;
-			case 3: command_part = temp[0];
-					if (command_part.equals("NODESWITHFILE"))//Checks scenario of only 1 IP being
-					{										 //being returned - ambiguity resolution		
-						keyList.add(temp[1]); 
-						break;
-					}
-					hash_part = temp[1];
-					ip_part = temp[2];
-					break;
-			default:for(int i = 1; i < temp.length; i++)//Case of more than 3 strings can only be
-					{									//the keylist response message
-						keyList.add(temp[i]);//adding the ip's to the keylist
-					}
-					break;
-		}		
+				}
+				hash_part = temp[1];
+				ip_part = temp[2];
+				break;
+			default:
+				command_part = temp[0];
+				for(int i = 1; i < temp.length; i++)//Case of more than 3 strings can only be
+				{									//the keylist response message
+					keyList.add(temp[i]);//adding the ip's to the keylist
+				}
+				break;
+		}	
+		
 	}
 	
 	private boolean processResponseMessage(String response)//logical flag manipulation for state of process
@@ -253,8 +256,23 @@ public class ClientProtocol
 		else return false;
 	}
 
-	private boolean storeKey(String fileKey)//Sends key and returns true if storage is ACKed by server
+	private boolean storeKey(String fileKey, Socket socket)//Sends key and returns true if storage is ACKed by server
 	{
+		try
+		{
+			socket = new Socket(ip_part,4017);
+			sender = new PrintWriter(socket.getOutputStream(), true);
+	        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));			
+		}
+		catch (UnknownHostException e) 
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		
 		boolean isAck = false;//boolean to return 
 		String response = null;	
 		sender.println("STOREKEY " + fileKey +" " + Neighbourhood.getMyId() + " " + Neighbourhood.getMyIp());
@@ -267,6 +285,7 @@ public class ClientProtocol
 			e.printStackTrace();
 		}
 		
+		//TODO have not dealt with if this is not the right node in which case we receive a "ASK ####"
 		isAck = processResponseMessage(response);//will be true if server ACKed storage of key
 		return isAck;
 	}
@@ -292,6 +311,7 @@ public class ClientProtocol
 	
 	//HELPER PRIVATE FUNCTIONS (shappy)
 
+	//TODO note the response that comes with it,
 	
 	private int getKey(String message)
 	{
