@@ -12,7 +12,8 @@ public class checkAlive implements Runnable
 	//Data Members
 	Thread t;
 	private Neighbourhood neighbours;
-	private final long timeoutDuration = 15000; //15 000 mS = 15 seconds  
+	private final long timeoutDuration = 15000; //15 000 mS = 15 seconds 
+	private final long checkAlivePause = 3000; //3000 mS = 3 seconds
 	private ClientProtocol protocol;
 	private Socket socket = null;
 	private PrintWriter sender = null;
@@ -40,6 +41,8 @@ public class checkAlive implements Runnable
 				updatePrePredecessor();
 			if(!isAlive(neighbours.getSucIp())) //Successor
 				updateSuccessor();
+			if(!isAlive(neighbours.getPrePreIp())) //SucSuccessor
+				updateSucSuccessor();
 			
 		}
 	}
@@ -129,11 +132,9 @@ public class checkAlive implements Runnable
 			neighbours.setPreIp(neighbours.getPrePreIp());
 			
 			//Assign pre-pre-predecessor to pre-predecessor
-			int whiteSpace1 = response.indexOf(" ");
-			String usefulResponse = response.substring(whiteSpace1+1,response.length());
-			int whiteSpace2 = usefulResponse.indexOf(" ");
-			neighbours.setPrePreId(usefulResponse.substring(0,whiteSpace2));
-			neighbours.setPrePreIp(usefulResponse.substring(whiteSpace2+1,usefulResponse.length()));		
+			String[] usefulResponse = response.split(" ");
+			neighbours.setPrePreId(usefulResponse[1]);
+			neighbours.setPrePreIp(usefulResponse[2]);		
 		}
 		
 		//Close socket and read/write
@@ -149,6 +150,12 @@ public class checkAlive implements Runnable
 	
 	private void updatePrePredecessor()
 	{
+		//Pause - wait some time for my predecessor to detect that his precdecessor
+		//(my pre-predeccessor) has fallen off the network and to update his neighbourhood.
+		try 
+		{
+			Thread.sleep(checkAlivePause);
+		} catch (InterruptedException e1) { e1.printStackTrace(); }
 		
 		//Initialise socket and read/write
 		try 
@@ -174,11 +181,9 @@ public class checkAlive implements Runnable
 		//If correct reply, update
 		if(response.contains(protocol.getPredecessorResponse()))
 		{
-			int whiteSpace1 = response.indexOf(" ");
-			String usefulResponse = response.substring(whiteSpace1+1,response.length());
-			int whiteSpace2 = usefulResponse.indexOf(" ");
-			neighbours.setPrePreId(usefulResponse.substring(0,whiteSpace2));
-			neighbours.setPrePreIp(usefulResponse.substring(whiteSpace2+1,usefulResponse.length()));		
+			String[] usefulResponse = response.split(" ");
+			neighbours.setPrePreId(usefulResponse[1]);
+			neighbours.setPrePreIp(usefulResponse[2]);		
 		}
 		
 		//Close socket and read/write
@@ -222,12 +227,10 @@ public class checkAlive implements Runnable
 			neighbours.setSucId(neighbours.getSucSucId());
 			neighbours.setSucIp(neighbours.getSucSucIp());
 			
-			//Assign sucsuccessor's sucessor to the sucsuccessor
-			int firstWhiteSpace = response.indexOf(" ");
-			String usefulResponse = response.substring(firstWhiteSpace+1,response.length());
-			int secondWhiteSpace = usefulResponse.indexOf(" ");
-			neighbours.setSucSucId(usefulResponse.substring(0,secondWhiteSpace));
-			neighbours.setSucSucIp(usefulResponse.substring(secondWhiteSpace+1,usefulResponse.length()));
+			//Assign suc-successor's sucessor to my suc-successor
+			String[] usefulResponse = response.split(" ");
+			neighbours.setSucSucId(usefulResponse[1]);
+			neighbours.setSucSucIp(usefulResponse[2]);
 		}
 		
 		//Close socket and read/write
@@ -241,6 +244,57 @@ public class checkAlive implements Runnable
 
 	}
 
-
+	private void updateSucSuccessor()
+	{
+		//Pause - wait for my successor to realise that his successor
+		//(my sucsuccessor) has fallen off the overlay and for him to update his neighbourhood
+		try 
+		{
+			Thread.sleep(checkAlivePause);
+		} catch (InterruptedException e1) { e1.printStackTrace(); }
+		
+		//Initialise socket and read/write
+		try 
+		{
+			socket = new Socket(neighbours.getSucIp(),4017); //speaking to suc-successor
+			sender = new PrintWriter(socket.getOutputStream(),true);
+			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		} 
+		catch (UnknownHostException e) { e.printStackTrace(); }
+		catch (IOException e) { e.printStackTrace(); }
+		
+		//Ask for his successor
+		sender.println(protocol.getSuccessorQuery());
+		
+		//Listen for his response
+		String response = null;
+		try 
+		{
+			response = receiver.readLine();
+		} 
+		catch (IOException e) { e.printStackTrace(); }
+		
+		//If correct reply, update
+		if(response.contains(protocol.getSuccessorResponse()))
+		{
+			//Set my suc-successor as my successors successor 
+			String[] usefulResponse = response.split(" ");
+			neighbours.setSucSucId(usefulResponse[1]);
+			neighbours.setSucSucIp(usefulResponse[2]);
+		}
+		
+		//Close socket and read/write
+		try 
+		{
+			receiver.close();
+			sender.close();
+			socket.close();
+		} 
+		catch (IOException e) { e.printStackTrace(); }
+		
+		
+	}
+	
+	
 
 }
