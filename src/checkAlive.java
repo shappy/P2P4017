@@ -19,7 +19,6 @@ public class checkAlive implements Runnable
 	private PrintWriter sender = null;
 	private BufferedReader receiver = null;
 	
-	
 	//Functions
 	public checkAlive()
 	{
@@ -43,7 +42,6 @@ public class checkAlive implements Runnable
 				updateSuccessor();
 			if(!isAlive(neighbours.getPrePreIp())) //SucSuccessor
 				updateSucSuccessor();
-			
 		}
 	}
 	
