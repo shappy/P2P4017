@@ -11,6 +11,7 @@ public class Client implements Runnable
 {
 	
 	Thread t;
+	private checkAlive maintainNeighbourhood; // greg
 	Socket socket = null;
 	PrintWriter sender = null;
 	BufferedReader receiver = null;
@@ -19,6 +20,7 @@ public class Client implements Runnable
 	public Client()
 	{
 		t = new Thread(this);
+		maintainNeighbourhood = new checkAlive();//greg
 		t.start();
 	}
 	
