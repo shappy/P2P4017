@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Random;
 
+// Added a comment
 public class Client implements Runnable
 {
 	
