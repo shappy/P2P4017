@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Random;
 import java.security.*;
 // Added a comment
@@ -59,27 +60,62 @@ public class Client implements Runnable
 			}
 	        
 		}	
-		// TODO Tell peeps you're in the hood
-
 		
-		//Joined overlay, watch neighbours
+		//Tell peeps you're in the hood
+		protocol.updateNeighbourhood(socket);
+		
+		//Joined overlay, now watch neighbours
 		neighbourhoodWatch = new CheckAlive();//greg
 		
 		
-		// TODO Carry on with calls the client must make
-		// 
-		//
-		//
-		//
 		// ETAI code for distributing file keys
 		//TODO hash the files that you own
 		//TODO loop this function for as many files as you have
 		//TODO a check to redistribute file keys. This includes toggling a flag after a download completes 
 		protocol.distributeFileKey("", socket);
 		
-		//TODO Prompted by the user who desires downloading a specific key
-		protocol.RetreiveFileKeyList("", socket);
 		
+		//Code to wait for user input on what file he/she wants to download
+		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+		String fileName ="";  
+		String hash = "";
+		List<String> key_list = null;
+		FileDownloader file_downloader = null;
+
+		while(!fileName.equals("exit"))
+		{
+			System.out.println("File to Download (exit to cancel): ");
+			try 
+			{
+				fileName = input.readLine();
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+			}
+			
+			//TODO Prompted by the user who desires downloading a specific key
+			hash = hashFile(fileName);
+			protocol.RetreiveFileKeyList(hash, socket);
+			key_list = protocol.getKeyList();
+			file_downloader = new FileDownloader(hash, key_list);//send the key list and the files key to be downloaded
+			
+		}
+		
+		
+		
+		
+		//Close the socket and readers
+		try 
+		{
+			receiver.close();
+			sender.close();
+			socket.close();
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
 		
 		
 		
@@ -134,8 +170,14 @@ public class Client implements Runnable
 			e.printStackTrace();
 		} 
         String fileHash = buffer.toString();
-        return fileHash;
+        
+        //TODO mod by swarm size to get int representation  
+        return "";//must be a string
+        
+        //return Long.parseLong(fileHash, 16);
 	}
+	
+	
 	
 }
 
