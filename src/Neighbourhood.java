@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Neighbourhood
 {
 	//Data members
@@ -16,6 +19,9 @@ public class Neighbourhood
 	
 	private static String prePreId;
 	private static String prePreIp;
+	
+	private static ArrayList< List<String>> keyHolderIpTable = null;
+	private static ArrayList<String> keyHolderLookup = null;
 	
 	private static String swarmSize;
 	
@@ -100,6 +106,29 @@ public class Neighbourhood
 
 	public static synchronized void setPrePreIp(String prePreIp) {
 		Neighbourhood.prePreIp = prePreIp;
+	}
+	
+	@SuppressWarnings("null")
+	public static synchronized void addToKeyHolderList(String fileKey, String ip)
+	{
+		if(keyHolderLookup.contains(fileKey))
+		{
+			keyHolderIpTable.get(keyHolderLookup.indexOf(fileKey)).add(ip);
+		}
+		else
+		{
+			keyHolderLookup.add(fileKey);
+			List<String> temp = null;
+			temp.add(ip);
+			keyHolderIpTable.add(keyHolderLookup.indexOf(fileKey),temp);
+		}
+	}
+	
+	public static synchronized List<String> getKeyHolderList(String fileKey)
+	{
+		List<String> ipList = keyHolderIpTable.get(keyHolderLookup.indexOf(fileKey));
+		
+		return ipList;
 	}
 
 	public static synchronized String getSwarmSize() {
