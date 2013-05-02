@@ -20,8 +20,8 @@ public class Neighbourhood
 	private static String prePreId;
 	private static String prePreIp;
 	
-	private static ArrayList< List<String>> keyHolderIpTable = null;
-	private static ArrayList<String> keyHolderLookup = null;
+	private static ArrayList< List<String>> keyTable = null;
+	private static ArrayList<String> ipLookup = null;
 	
 	private static String swarmSize;
 	
@@ -111,24 +111,29 @@ public class Neighbourhood
 	@SuppressWarnings("null")
 	public static synchronized void addToKeyHolderList(String fileKey, String ip)
 	{
-		if(keyHolderLookup.contains(fileKey))
+		if(ipLookup.contains(fileKey))
 		{
-			keyHolderIpTable.get(keyHolderLookup.indexOf(fileKey)).add(ip);
+			keyTable.get(ipLookup.indexOf(fileKey)).add(ip);
 		}
 		else
 		{
-			keyHolderLookup.add(fileKey);
+			ipLookup.add(fileKey);
 			List<String> temp = null;
 			temp.add(ip);
-			keyHolderIpTable.add(keyHolderLookup.indexOf(fileKey),temp);
+			keyTable.add(ipLookup.indexOf(fileKey),temp);
 		}
 	}
 	
-	public static synchronized List<String> getKeyHolderList(String fileKey)
+	public static synchronized List<String> getKeyList(String ip)
 	{
-		List<String> ipList = keyHolderIpTable.get(keyHolderLookup.indexOf(fileKey));
+		List<String> keyList = keyTable.get(ipLookup.indexOf(ip));
 		
-		return ipList;
+		return keyList;
+	}
+	
+	public static synchronized List<String> getIpList()
+	{
+		return ipLookup;
 	}
 
 	public static synchronized String getSwarmSize() {
