@@ -7,10 +7,10 @@ public class Neighbourhood
 {
 	//Data members
 	// i think these must all be keys(ariel)
-	private static String myId;
+	private static String myId = "1";
 	private static String myIp;
 
-	private static String sucId;
+	private static String sucId = "1";
 	private static String sucIp;
 
 	private static String sucSucId;
@@ -28,8 +28,8 @@ public class Neighbourhood
 //CheckAlive now monitors tracking nodes, changed distributeFileKey() function
 	private static int swarmSize;
 	
-	private static boolean isSuperNode = true;
-	private String superNodeIP =""; //node to contact first 
+	private static boolean isSuperNode = false;
+	private String superNodeIP ="146.141.125.68"; //node to contact first 
 	
 
 	public Neighbourhood()
@@ -45,6 +45,7 @@ public class Neighbourhood
 		}
 		
 		myIp = own_IP;
+		sucIp = own_IP;
 		sucSucIp = own_IP;
 		prePreIp = own_IP;
 	}

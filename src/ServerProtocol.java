@@ -1,33 +1,35 @@
 
 public class ServerProtocol {
 
+	private Neighbourhood neighbourhood = new Neighbourhood();
+
 	String ip_part = null;
 	String command_part = null;
 	String key_part = null;
 	String clientId_part = null;
-	int swarm_size = Neighbourhood.getSwarmSize();
+	int swarm_size = neighbourhood.getSwarmSize();
 
-	private Neighbourhood neighbourhood;
 
-	public ServerProtocol()
-	{
-		neighbourhood = new Neighbourhood();
-	}
+
     
     public String respond(String input) 
     {
     	String response = null;
     	formatQuery(input);
-    	if(command_part.equals("KEY")){response = "RETKEY " + Neighbourhood.getMyId();}
+    	if(command_part.equals("KEY")){response = "RETKEY " + neighbourhood.getMyId();}
     	
-    	else if(command_part.equals("SUCCESSORKEY")){response = "RETSUCCESSORKEY " + Neighbourhood.getSucId() + " " + Neighbourhood.getSucIp();}
+    	else if(command_part.equals("SUCCESSORSKEY")){response = "RETSUCCESSORKEY " + neighbourhood.getSucId() + " " + neighbourhood.getSucIp();}
     	
-    	else if(command_part.equals("PREDECESSOR")){response = "RETPREDECESSOR " + Neighbourhood.getPreId() + " " + Neighbourhood.getPreIp();}
+    	else if(command_part.equals("PREDECESSORSKEY")){response = "RETPREDECESSORSKEY " + neighbourhood.getPreId() + " " + neighbourhood.getPreIp();}
     	
     	else if(command_part.equals("ALIVE")){response = "ACK";}
     	
-    	else if(command_part.equals("GETSIZE")){response = "RETSIZE " + Neighbourhood.getSwarmSize();}
+    	else if(command_part.equals("GETSIZE")){response = "RETSIZE " + neighbourhood.getSwarmSize();}
     	
+    	else if(command_part.equals("UPDATESUCCESSOR")){response = "ACK"; neighbourhood.setSucId(key_part); neighbourhood.setSucIp(ip_part);}
+
+    	else if(command_part.equals("UPDATEPREDECESSOR")){response = "ACK"; neighbourhood.setPreId(key_part); neighbourhood.setPreIp(ip_part);}
+
     	//TODO:other reponses to queries for key responsibility
     	
     	

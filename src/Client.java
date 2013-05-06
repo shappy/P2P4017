@@ -33,12 +33,12 @@ public class Client implements Runnable
 		//Join Overlay
 		String IP = protocol.getSuperNodeIP();
 		
-		while (!IP.equalsIgnoreCase(null) && !Neighbourhood.isSuperNode()) // while we have not yet found a slot
+		while (!IP.equalsIgnoreCase("done") && !Neighbourhood.isSuperNode()) // while we have not yet found a slot
 		{		
 			//Create socket to talk to server
 			try 
 			{
-				socket = new Socket(IP, 4017);//make a new connection (first and 2nd time is with supernode)
+				socket = new Socket(IP, 4020);//make a new connection (first and 2nd time is with supernode)
 				sender = new PrintWriter(socket.getOutputStream(), true);
 		        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			} 
@@ -48,11 +48,12 @@ public class Client implements Runnable
 			catch (IOException e) {
 				e.printStackTrace();
 			}
-
+			System.out.println("Client is sending: " + protocol.sendJoin());
 	        sender.println( protocol.sendJoin() );//the protocol decides which message to send within 'join algorithm'
 	        
 	        try 
 	        {
+				//System.out.println("Client is receiving: " + receiver.readLine());
 				IP = protocol.receiveJoin( receiver.readLine() );//the protocol returns the next IP to talk to
 			} 
 	        catch (IOException e) 
@@ -71,6 +72,7 @@ public class Client implements Runnable
 		{
 			try 
 			{
+				System.out.println("Waiting for sufficient overlay for 1 second");
 				Thread.sleep(1000);
 			} 
 			catch (InterruptedException e) 

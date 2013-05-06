@@ -77,7 +77,7 @@ public class ClientProtocol
 				catch (UnknownHostException e) {
 					e.printStackTrace();
 				}
-				return null;
+				return "done";
 			}
 			else if (suc_key == temp_key) // if the key is taken, try the next sequential slot
 				temp_key = temp_key + 1;
@@ -112,7 +112,7 @@ public class ClientProtocol
 		{
 			try 
 			{
-				socket = new Socket(IP[i], 4017);
+				socket = new Socket(IP[i], 4020);
 				sender = new PrintWriter(socket.getOutputStream(), true);
 		        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			} 
