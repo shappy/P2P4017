@@ -165,7 +165,7 @@ public class ClientProtocol
 		}
 	}
 	
-	public void RetreiveFileKeyList(String fileKey, Socket socket)
+	public void RetrieveFileKeyList(String fileKey, Socket socket)
 	{
 		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
 		boolean isNodeFound = false;

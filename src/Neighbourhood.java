@@ -3,6 +3,7 @@ import java.util.List;
 
 public class Neighbourhood
 {
+	private static int swarmSize;
 	//Data members
 	// i think these must all be keys(ariel)
 	private static String myId;
@@ -23,11 +24,18 @@ public class Neighbourhood
 	private static ArrayList< List<String>> keyHolderIpTable = null;
 	private static ArrayList<String> keyHolderLookup = null;
 	
-	private static String swarmSize;
 	
 	private final String superNodeIP = "lkjlk"; //node to contact first 
 
 	//Functions
+	public static synchronized int getSwarmSize() {
+		return swarmSize;
+	}
+	
+	public static synchronized void setSwarmSize(int size) {
+		swarmSize = size;
+	}
+	
 	public static synchronized String getMyId() {
 		return myId;
 	}
@@ -129,14 +137,6 @@ public class Neighbourhood
 		List<String> ipList = keyHolderIpTable.get(keyHolderLookup.indexOf(fileKey));
 		
 		return ipList;
-	}
-
-	public static synchronized String getSwarmSize() {
-		return swarmSize;
-	}
-
-	public static synchronized void setSwarmSize(String swarmSize) {
-		Neighbourhood.swarmSize = swarmSize;
 	}
 
 	public String getSuperNodeIP() {

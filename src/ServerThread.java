@@ -26,8 +26,6 @@ public class ServerThread implements Runnable{
             String requestFromClient, responseToClient;
             ServerProtocol protocol = new ServerProtocol();
             
-            //Send the welcome message
-            sender.println(protocol.firstServerMessage());
            
              //Listen to what the client says
             requestFromClient = receiver.readLine();

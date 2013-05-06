@@ -2,6 +2,12 @@
  
 public class ServerProtocol {
 	
+	String ip_part = null;
+	String command_part = null;
+	String key_part = null;
+	String clientId_part = null;
+	int swarm_size = Neighbourhood.getSwarmSize();
+	
 	private Neighbourhood neighbourhood;
 	
 	public ServerProtocol()
@@ -9,40 +15,59 @@ public class ServerProtocol {
 		neighbourhood = new Neighbourhood();
 	}
     
-    public String firstServerMessage () 
-    {
-    	String message ="1";
-		return message;
-    	
-    }
- 
     public String respond(String input) 
     {
-    	int intInput = Integer.parseInt(input);
+    	String response = null;
+    	formatQuery(input);
+    	if(command_part.equals("KEY")){response = "RETKEY " + Neighbourhood.getMyId();}
     	
-//    	if (intInput == 5)
-//    		return Integer.toString(neighbourhood.getA());
-//    	else
-//    	{
-//    		neighbourhood.setA(intInput);
-//    		return "3";
-//    	}
-    	  	
-    	return null;
+    	else if(command_part.equals("SUCCESSORKEY")){response = "RETSUCCESSORKEY " + Neighbourhood.getSucId() + " " + Neighbourhood.getSucIp();}
+    	
+    	else if(command_part.equals("PREDECESSOR")){response = "RETPREDECESSOR " + Neighbourhood.getPreId() + " " + Neighbourhood.getPreIp();}
+    	
+    	else if(command_part.equals("ALIVE")){response = "ACK";}
+    	
+    	else if(command_part.equals("GETSIZE")){response = "RETSIZE " + Neighbourhood.getSwarmSize();}
+    	
+    	//TODO:other reponses to queries for key responsibility
+    	
+    	
+    	return response;
     }
-    	
-    	
-//    	if (input.equals("1"))
-//    		return "2";
-//    	else if (input.equals("2"))
-//    		return "3";
-//    	else if (input.equals("3"))
-//    		return "4";
-//    	else if (input.equals("4"))
-//    		return "5";
-//    	else if (input.equals("5"))
-//    		return "6";
-    	
-    	
+    
+    private void formatQuery(String input)
+    {
+    	String[] temp;//init an array of strings
+		temp = input.split(" ");//Split message into substrings with "space" as a delimiter
+		
+		switch(temp.length)//Depending on message spaces, know the format of the message
+		{
+			case 1: 
+				command_part = temp[0];
+				break;
+			case 2: 
+				command_part = temp[0];
+				if(command_part.equals("SIZE"))
+				{
+					swarm_size = Integer.parseInt(temp[1]);
+					break;
+				}
+				else key_part = temp[1];
+				break;
+			case 3: 
+				command_part = temp[0];
+				key_part = temp[1];
+				ip_part = temp[2];
+				break;
+			case 4:
+				command_part = temp[0];
+				key_part = temp[1];
+				clientId_part = temp[2];
+				ip_part = temp[3];
+				break;
+			default:
+				break;
+		}		
+    }
     
 }

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -72,7 +73,8 @@ public class Client implements Runnable
 		//TODO hash the files that you own
 		//TODO loop this function for as many files as you have
 		//TODO a check to redistribute file keys. This includes toggling a flag after a download completes 
-		protocol.distributeFileKey("", socket);
+		String key = hashFile("sample.txt");
+		protocol.distributeFileKey(key, socket);
 		
 		
 		//Code to wait for user input on what file he/she wants to download
@@ -157,11 +159,16 @@ public class Client implements Runnable
 			e.printStackTrace();
 		};
 		byte[] hashBytes = sha1.digest();
+		BigInteger bigInt_hash = new BigInteger(hashBytes);
+		BigInteger bigInt_swarmSize = new BigInteger(String.valueOf(Neighbourhood.getSwarmSize()));
+		BigInteger bigInt_id = bigInt_hash.mod(bigInt_swarmSize);
+		/*
 		StringBuffer buffer = new StringBuffer();
         for (int i = 0; i < hashBytes.length; i++) 
         {
           buffer.append(Integer.toString((hashBytes[i] & 0xff) + 0x100, 16).substring(1));
         }
+        */
         try 
         {
 			fis.close();
@@ -169,10 +176,10 @@ public class Client implements Runnable
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
-        String fileHash = buffer.toString();
+        //String fileHash = buffer.toString();
         
         //TODO mod by swarm size to get int representation  
-        return "";//must be a string
+        return bigInt_id.toString();//must be a string
         
         //return Long.parseLong(fileHash, 16);
 	}
