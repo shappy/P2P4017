@@ -33,7 +33,7 @@ public class Client implements Runnable
 		//Join Overlay
 		String IP = protocol.getSuperNodeIP();
 		
-		while (!IP.equalsIgnoreCase(null)) // while we have not yet found a slot
+		while (!IP.equalsIgnoreCase(null) && !Neighbourhood.isSuperNode()) // while we have not yet found a slot
 		{		
 			//Create socket to talk to server
 			try 
@@ -63,7 +63,21 @@ public class Client implements Runnable
 		}	
 		
 		//Tell peeps you're in the hood
+		if (!Neighbourhood.isSuperNode())
 		protocol.updateNeighbourhood(socket);
+		
+		//Check that it is a sufficiently sized overlay
+		while(!protocol.isSufficientForOverlay())
+		{
+			try 
+			{
+				Thread.sleep(1000);
+			} 
+			catch (InterruptedException e) 
+			{
+				e.printStackTrace();
+			}
+		}
 		
 		//Joined overlay, now watch neighbours
 		neighbourhoodWatch = new CheckAlive();//greg
@@ -71,10 +85,9 @@ public class Client implements Runnable
 		
 		// ETAI code for distributing file keys
 		//TODO hash the files that you own
-		//TODO loop this function for as many files as you have
 		//TODO a check to redistribute file keys. This includes toggling a flag after a download completes 
-		String key = hashFile("sample.txt");
-		protocol.distributeFileKey(key, socket);
+		List<String> list = null;
+		protocol.distributeFileKeys(list, socket); //changed function to accept a List<String>, use accordingly
 		
 		
 		//Code to wait for user input on what file he/she wants to download
@@ -98,7 +111,7 @@ public class Client implements Runnable
 			
 			//TODO Prompted by the user who desires downloading a specific key
 			hash = hashFile(fileName);
-			protocol.RetreiveFileKeyList(hash, socket);
+			protocol.retrieveFileKeyList(hash, socket);
 			key_list = protocol.getKeyList();
 			file_downloader = new FileDownloader(hash, key_list);//send the key list and the files key to be downloaded
 			
@@ -123,6 +136,7 @@ public class Client implements Runnable
 		
 	}
 	
+
 	public String hashFile(String fileName)//string: fileName converted by SHA1 to string of hex
 	{
 		MessageDigest sha1 = null;
@@ -136,7 +150,7 @@ public class Client implements Runnable
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		try 
 		{
 			fis = new FileInputStream(fileName);

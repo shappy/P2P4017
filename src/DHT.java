@@ -12,7 +12,7 @@ public class DHT {
 														   //maintained externally by the lookup table
 	private static ArrayList<String> hashLookup = null;//Lookup table used as reference for ip lists.
 	
-	public List<String> getIpList(String fileKey)//Returns ip addresses for given fileKey
+	public List<String> getIpList(String fileKey)//Returns ip addresses for a given fileKey
 	{ 
 		//get the inner list indexed for the specific fileKey 
 		List<String> inner = ipTable.get(hashLookup.indexOf(fileKey));
@@ -20,7 +20,6 @@ public class DHT {
 		return inner;
 	}
 	
-	@SuppressWarnings("null")
 	public void addToDHT(String fileKey, String ip)//add the ip associated with the fileKey
 	{
 		//separate message
@@ -31,13 +30,14 @@ public class DHT {
 		else
 		{
 			hashLookup.add(fileKey);
-			List<String> temp = null;
+			List<String> temp = new ArrayList<String>();
 			temp.add(ip);
 			ipTable.add(hashLookup.indexOf(fileKey),temp);
 		}
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) 
+	{
 		// TODO Auto-generated method stub
 
 	}

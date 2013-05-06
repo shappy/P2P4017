@@ -1,15 +1,14 @@
 
- 
 public class ServerProtocol {
-	
+
 	String ip_part = null;
 	String command_part = null;
 	String key_part = null;
 	String clientId_part = null;
 	int swarm_size = Neighbourhood.getSwarmSize();
-	
+
 	private Neighbourhood neighbourhood;
-	
+
 	public ServerProtocol()
 	{
 		neighbourhood = new Neighbourhood();
@@ -39,7 +38,7 @@ public class ServerProtocol {
     {
     	String[] temp;//init an array of strings
 		temp = input.split(" ");//Split message into substrings with "space" as a delimiter
-		
+
 		switch(temp.length)//Depending on message spaces, know the format of the message
 		{
 			case 1: 

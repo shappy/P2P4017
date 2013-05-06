@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -65,7 +66,8 @@ public class ClientProtocol
 			suc_key = getKey(message);//set the new successor key
 			suc_IP = getIP(message);//set theh new successor IP
 			
-			if (suc_key > temp_key && temp_key > pre_key) // if we are sitting in between the 2 we can slot in and exit
+			// if we are sitting in between the 2 we can slot in and exit or if we are the first to join
+			if ((suc_key > temp_key && temp_key > pre_key) || (suc_IP.equals(neighbourhood.getSuperNodeIP())) ) 
 			{
 				Neighbourhood.setMyId(Integer.toString(temp_key));	
 				try 
@@ -81,6 +83,17 @@ public class ClientProtocol
 				temp_key = temp_key + 1;
 		}
 		return getIP(message);
+	}
+	
+	public boolean isSufficientForOverlay() 
+	{
+		String sucsucIP = neighbourhood.getSucSucIp();
+		String myIP = neighbourhood.getMyIp();
+		
+		if(sucsucIP.equals(myIP))
+			return false;
+		else 
+			return true;
 	}
 	
 	//This function is in charge of saving the successor and predecessor and telling them to update their fields
@@ -127,45 +140,58 @@ public class ClientProtocol
 	}
 	
 	//Macro function for distributing a single file key
-	public void distributeFileKey(String fileKey, Socket socket)
+	public void distributeFileKeys(List<String> fileKeys, Socket socket)
 	{
 		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
 		boolean isNodeFound = false;
 		boolean isKeyStored = false;
 		String response = null;
 		
-		while(!isKeyStored)//while the key has not been stored in appropriate node...
-		{	
-			do //Initiate comms and receive comms until found the correct node to store key with
+		//Store every key in the list (Greg)
+		for (int i=0; i<fileKeys.size(); i++)
+		{
+			while(!isKeyStored)//while the key has not been stored in appropriate node...
 			{	
-				try
-				{
-					socket = new Socket(ip_part,4017);
-					sender = new PrintWriter(socket.getOutputStream(), true);
-			        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));			
+				do //Initiate comms and receive comms until found the correct node to store key with
+				{	
+					try
+					{
+						socket = new Socket(ip_part,4017);
+						sender = new PrintWriter(socket.getOutputStream(), true);
+				        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));			
+					}
+					catch (UnknownHostException e) 
+					{
+						e.printStackTrace();
+					}
+					catch (IOException e) 
+					{
+						e.printStackTrace();
+					}
+					 
+					response = whoShouldHoldThisKey(fileKeys.get(i));
+					
+					isNodeFound = processResponseMessage(response);
 				}
-				catch (UnknownHostException e) 
-				{
-					e.printStackTrace();
-				}
-				catch (IOException e) 
-				{
-					e.printStackTrace();
-				}
+				while(!isNodeFound);//Exit loop when storage node is found
 				
-				response = whoShouldHoldThisKey(fileKey);
-				
-				isNodeFound = processResponseMessage(response);
+				isKeyStored = storeKey(fileKeys.get(i), socket);//Init comms, and send fileKey to the found node.
+												//returns true if receive ACK 
+				isNodeFound = false;//If not ACKed, must reset inner loop and continue with search for node.
 			}
-			while(!isNodeFound);//Exit loop when storage node is found
-			
-			isKeyStored = storeKey(fileKey, socket);//Init comms, and send fileKey to the found node.
-											//returns true if receive ACK 
-			isNodeFound = false;//If not ACKed, must reset inner loop and continue with search for node.
 		}
+		
+		//try and close socket and read/write
+		try 
+		{
+			receiver.close();
+			sender.close();
+			socket.close();
+		} 
+		catch (IOException e) { e.printStackTrace(); }	
 	}
 	
-	public void RetrieveFileKeyList(String fileKey, Socket socket)
+	public void retrieveFileKeyList(String fileKey, Socket socket)
 	{
 		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
 		boolean isNodeFound = false;
@@ -203,15 +229,21 @@ public class ClientProtocol
 		}
 	}
 	
-	public List<Integer> processIndexQuery(String message) 
+	public List<Integer> processIndexResponse(String message) 
 	{
-		List<Integer> indices = null;
+		List<Integer> indices = new ArrayList<Integer>();
 		string_array = message.split(" "); //split the string by the " " = space parameter if only one word it returns that word
 		for (int i = 0; i < string_array.length - 1; i++)
 		{
-			indices.set(i, Integer.parseInt(string_array[i+1]));//+1 to not worry about the command
+			indices.add(i, Integer.parseInt(string_array[i+1]));//+1 to not worry about the command
 		}
 		return indices;
+	}
+	
+	public String processPortResponse(String message) 
+	{
+		string_array = message.split(" "); //split the string by the " " = space parameter if only one word it returns that word
+		return string_array[1];//return the port number to use in the http method
 	}
 	
 	//CHECK ALIVE QUERY FUNCTIONS (greg)
@@ -252,12 +284,17 @@ public class ClientProtocol
 	{
 		return keyList;
 	}
-	
+
 	//From Shappy
 	
 	public String getIndexQuery(String hash) 
 	{
 		return "REQUESTINDEXSOFHASH " + hash;
+	}
+	
+	public String getPortNum(String hash, int index) 
+	{
+		return "REQUEST " + hash + " " + Integer.toString(index);
 	}
 	
 	

@@ -2,8 +2,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.lang.String;
 
 
@@ -11,10 +13,10 @@ public class CheckAlive implements Runnable
 {
 	//Data Members
 	Thread t;
-	private Neighbourhood neighbours;
-	private final long timeoutDuration = 15000; //15 000 mS = 15 seconds 
-	private final long checkAlivePause = 3000; //3000 mS = 3 seconds
+	private final int timeoutDuration = 15000; //milliseconds
+	private final int checkAlivePause = 3000; //milliseconds
 	private ClientProtocol protocol;
+	List<String> trackingIps = null;
 	private Socket socket = null;
 	private PrintWriter sender = null;
 	private BufferedReader receiver = null;
@@ -23,7 +25,6 @@ public class CheckAlive implements Runnable
 	public CheckAlive()
 	{
 		t = new Thread(this); //Assign this object to its own thread
-		neighbours = new Neighbourhood();
 		protocol = new ClientProtocol();
 		t.start();
 	}
@@ -34,14 +35,28 @@ public class CheckAlive implements Runnable
 		while(flag)
 		{
 			//TODO: maybe introduce a delay
-			if(!isAlive(neighbours.getPreIp())) //Predecessor
+			//Check that all neighbours are alive
+			if(!isAlive(Neighbourhood.getPreIp())) //Predecessor
 				updatePredecessor();
-			if(!isAlive(neighbours.getPrePreIp())) //PrePredecessor
+			if(!isAlive(Neighbourhood.getPrePreIp())) //PrePredecessor
 				updatePrePredecessor();
-			if(!isAlive(neighbours.getSucIp())) //Successor
+			if(!isAlive(Neighbourhood.getSucIp())) //Successor
 				updateSuccessor();
-			if(!isAlive(neighbours.getPrePreIp())) //SucSuccessor
+			if(!isAlive(Neighbourhood.getPrePreIp())) //SucSuccessor
 				updateSucSuccessor();
+			
+			//Check that all nodes tracking this node are alive
+			 trackingIps = Neighbourhood.getIpList();
+			 for (int i=0; i<trackingIps.size(); i++)
+			 {
+				 if(!isAlive(trackingIps.get(i)))
+				 {
+					 //the tracking node is dead, redistribute files 
+					 //TODO: Maybe this should go on another thread?
+					 protocol.distributeFileKeys(Neighbourhood.getKeyList(trackingIps.get(i)), socket);
+				 }
+			 }
+			
 		}
 	}
 
@@ -49,13 +64,14 @@ public class CheckAlive implements Runnable
 	private boolean isAlive(String IPadr)
 
 	{
-		String responseFromNode = null;
 		boolean result = true;
+		String responseFromNode = null;
 
 		//Initialise socket and read/write 
 		try 
 		{
-			socket = new Socket(IPadr,4017);
+			socket = new Socket();
+			socket.connect(new InetSocketAddress(IPadr,4017),timeoutDuration); //set the timeout duration
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -65,22 +81,12 @@ public class CheckAlive implements Runnable
 		//Ask the node if it is alive 
 		sender.println(protocol.checkAliveQuery());
 
-		//Listen for a reply for timeoutDuration seconds
-		//TODO: Set a timeout on the socket
-		long startTime = System.currentTimeMillis();
-		long timeout = startTime + timeoutDuration;
-		while(System.currentTimeMillis() < timeout)
+		//Listen for a reply
+		try 
 		{
-			try //will it wait here?
-			{
-				responseFromNode = receiver.readLine();
-			} 
-			catch (IOException e) { e.printStackTrace(); }
-
-			//Break if the node answered
-			if (responseFromNode != null)
-				break;		
-		}
+			responseFromNode = receiver.readLine();
+		} 
+		catch (IOException e1) { e1.printStackTrace(); }
 
 		//Evaluate node reply 
 		//TODO: timeout might return something funky
@@ -106,7 +112,7 @@ public class CheckAlive implements Runnable
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(neighbours.getPrePreIp(),4017); //speaking to pre-predecessor
+			socket = new Socket(Neighbourhood.getPrePreIp(),4017); //speaking to pre-predecessor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -128,13 +134,13 @@ public class CheckAlive implements Runnable
 		if(response.contains(protocol.getPredecessorResponse()))
 		{
 			//Assign pre-predecessor to predecessor
-			neighbours.setPreId(neighbours.getPrePreId());
-			neighbours.setPreIp(neighbours.getPrePreIp());
+			Neighbourhood.setPreId(Neighbourhood.getPrePreId());
+			Neighbourhood.setPreIp(Neighbourhood.getPrePreIp());
 
 			//Assign pre-pre-predecessor to pre-predecessor
 			String[] usefulResponse = response.split(" ");
-			neighbours.setPrePreId(usefulResponse[1]);
-			neighbours.setPrePreIp(usefulResponse[2]);		
+			Neighbourhood.setPrePreId(usefulResponse[1]);
+			Neighbourhood.setPrePreIp(usefulResponse[2]);		
 		}
 
 		//Close socket and read/write
@@ -155,12 +161,13 @@ public class CheckAlive implements Runnable
 		try 
 		{
 			Thread.sleep(checkAlivePause);
-		} catch (InterruptedException e1) { e1.printStackTrace(); }
+		} 
+		catch (InterruptedException e1) { e1.printStackTrace(); }
 
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(neighbours.getPreIp(),4017); //speaking to predecessor
+			socket = new Socket(Neighbourhood.getPreIp(),4017); //speaking to predecessor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -182,8 +189,8 @@ public class CheckAlive implements Runnable
 		if(response.contains(protocol.getPredecessorResponse()))
 		{
 			String[] usefulResponse = response.split(" ");
-			neighbours.setPrePreId(usefulResponse[1]);
-			neighbours.setPrePreIp(usefulResponse[2]);		
+			Neighbourhood.setPrePreId(usefulResponse[1]);
+			Neighbourhood.setPrePreIp(usefulResponse[2]);		
 		}
 
 		//Close socket and read/write
@@ -202,7 +209,7 @@ public class CheckAlive implements Runnable
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(neighbours.getSucSucIp(),4017); //speaking to suc-successor
+			socket = new Socket(Neighbourhood.getSucSucIp(),4017); //speaking to suc-successor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -224,13 +231,13 @@ public class CheckAlive implements Runnable
 		if(response.contains(protocol.getSuccessorResponse()))
 		{
 			//Assign suc-successor to successor
-			neighbours.setSucId(neighbours.getSucSucId());
-			neighbours.setSucIp(neighbours.getSucSucIp());
+			Neighbourhood.setSucId(Neighbourhood.getSucSucId());
+			Neighbourhood.setSucIp(Neighbourhood.getSucSucIp());
 
 			//Assign suc-successor's sucessor to my suc-successor
 			String[] usefulResponse = response.split(" ");
-			neighbours.setSucSucId(usefulResponse[1]);
-			neighbours.setSucSucIp(usefulResponse[2]);
+			Neighbourhood.setSucSucId(usefulResponse[1]);
+			Neighbourhood.setSucSucIp(usefulResponse[2]);
 		}
 
 		//Close socket and read/write
@@ -256,7 +263,7 @@ public class CheckAlive implements Runnable
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(neighbours.getSucIp(),4017); //speaking to suc-successor
+			socket = new Socket(Neighbourhood.getSucIp(),4017); //speaking to suc-successor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -279,8 +286,8 @@ public class CheckAlive implements Runnable
 		{
 			//Set my suc-successor as my successors successor 
 			String[] usefulResponse = response.split(" ");
-			neighbours.setSucSucId(usefulResponse[1]);
-			neighbours.setSucSucIp(usefulResponse[2]);
+			Neighbourhood.setSucSucId(usefulResponse[1]);
+			Neighbourhood.setSucSucIp(usefulResponse[2]);
 		}
 
 		//Close socket and read/write
@@ -291,10 +298,7 @@ public class CheckAlive implements Runnable
 			socket.close();
 		} 
 		catch (IOException e) { e.printStackTrace(); }
-
-
 	}
-
 
 
 }

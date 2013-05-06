@@ -1,41 +1,55 @@
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Neighbourhood
 {
-	private static int swarmSize;
 	//Data members
 	// i think these must all be keys(ariel)
 	private static String myId;
 	private static String myIp;
-	
+
 	private static String sucId;
 	private static String sucIp;
-	
+
 	private static String sucSucId;
 	private static String sucSucIp;
-	
+
 	private static String preId;
 	private static String preIp;
-	
+
 	private static String prePreId;
 	private static String prePreIp;
 	
-	private static ArrayList< List<String>> keyHolderIpTable = null;
-	private static ArrayList<String> keyHolderLookup = null;
+	private static ArrayList< List<String>> keyTable = null;
+	private static ArrayList<String> ipLookup = null;
 	
+//CheckAlive now monitors tracking nodes, changed distributeFileKey() function
+	private static int swarmSize;
 	
-	private final String superNodeIP = "lkjlk"; //node to contact first 
+	private static boolean isSuperNode = true;
+	private String superNodeIP =""; //node to contact first 
+	
+
+	public Neighbourhood()
+	{
+		String own_IP ="";
+		try 
+		{
+			own_IP = InetAddress.getLocalHost().getHostAddress();
+		} 
+		catch (UnknownHostException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		myIp = own_IP;
+		sucSucIp = own_IP;
+		prePreIp = own_IP;
+	}
 
 	//Functions
-	public static synchronized int getSwarmSize() {
-		return swarmSize;
-	}
-	
-	public static synchronized void setSwarmSize(int size) {
-		swarmSize = size;
-	}
-	
 	public static synchronized String getMyId() {
 		return myId;
 	}
@@ -115,33 +129,60 @@ public class Neighbourhood
 	public static synchronized void setPrePreIp(String prePreIp) {
 		Neighbourhood.prePreIp = prePreIp;
 	}
-	
-	@SuppressWarnings("null")
+
+	@SuppressWarnings("null")//TODO dont allow warning its not initialized
 	public static synchronized void addToKeyHolderList(String fileKey, String ip)
 	{
-		if(keyHolderLookup.contains(fileKey))
+		if(ipLookup.contains(fileKey))
 		{
-			keyHolderIpTable.get(keyHolderLookup.indexOf(fileKey)).add(ip);
+			keyTable.get(ipLookup.indexOf(fileKey)).add(ip);
 		}
 		else
 		{
-			keyHolderLookup.add(fileKey);
+			ipLookup.add(fileKey);
 			List<String> temp = null;
 			temp.add(ip);
-			keyHolderIpTable.add(keyHolderLookup.indexOf(fileKey),temp);
+			keyTable.add(ipLookup.indexOf(fileKey),temp);
 		}
 	}
 	
-	public static synchronized List<String> getKeyHolderList(String fileKey)
+	public static synchronized List<String> getKeyList(String ip)
 	{
-		List<String> ipList = keyHolderIpTable.get(keyHolderLookup.indexOf(fileKey));
+		List<String> keyList = keyTable.get(ipLookup.indexOf(ip));
 		
-		return ipList;
+		return keyList;
 	}
 
-	public String getSuperNodeIP() {
+
+
+//CheckAlive now monitors tracking nodes, changed distributeFileKey() function
+
+ 	public static synchronized List<String> getIpList()
+	{
+		return ipLookup;
+	}
+
+	public static synchronized int getSwarmSize() 
+	{
+		return swarmSize;
+	}
+
+	public static synchronized void setSwarmSize(int swarmSize) 
+	{
+		Neighbourhood.swarmSize = swarmSize;
+	}
+
+	public String getSuperNodeIP() 
+	{
 		return superNodeIP;
 	}
-	
+
+	public static boolean isSuperNode() 
+	{
+		return isSuperNode;
+	}
+
+
+
 
 }
