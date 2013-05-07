@@ -2,7 +2,8 @@
 public class ServerProtocol {
 
 	private Neighbourhood neighbourhood = new Neighbourhood();
-
+	private DHT dht = new DHT();
+	
 	String ip_part = null;
 	String command_part = null;
 	String key_part = null;
@@ -30,6 +31,35 @@ public class ServerProtocol {
 
     	else if(command_part.equals("UPDATEPREDECESSOR")){response = "ACK"; neighbourhood.setPreId(key_part); neighbourhood.setPreIp(ip_part);}
 
+    	else if(command_part.equals("RESPONSIBLEKEY"))
+    	{
+    		if(Integer.parseInt(neighbourhood.getSucId()) >= Integer.parseInt(key_part))
+    		{response = "THISNODERESPONSIBLE " + neighbourhood.getSucIp();}
+    		
+    		else if (Integer.parseInt(neighbourhood.getSucId()) >= Integer.parseInt(key_part))
+    		{response = "THISNODERESPONSIBLE " + neighbourhood.getSucSucIp();}
+    		
+    		else {response = "ASK " + neighbourhood.getSucSucIp();}
+    	}
+    	
+    	else if(command_part.equals("STOREKEY"))
+    	{
+    		if (Integer.parseInt(neighbourhood.getMyId()) >= Integer.parseInt(key_part) && !(Integer.parseInt(neighbourhood.getPreId()) >= Integer.parseInt(key_part)))
+    		{response = "ACK";}
+    		else 
+    		{response = "ASK " + neighbourhood.getSucSucIp();}
+    	}
+    	
+    	else if(command_part.equals("NODELIST"))
+    	{
+    		response = "NODESWITHFILE " + dht.getIpList(key_part).get(0);
+    		
+    		for(int i = 1; i < dht.getIpList(key_part).size(); i++ )
+    		{
+    			response = response + " " + dht.getIpList(key_part).get(i);
+    		}
+    	}
+    		
     	//TODO:other reponses to queries for key responsibility
     	
     	
