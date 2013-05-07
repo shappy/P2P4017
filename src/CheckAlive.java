@@ -27,6 +27,7 @@ public class CheckAlive implements Runnable
 		t = new Thread(this); //Assign this object to its own thread
 		protocol = new ClientProtocol();
 		t.start();
+		System.out.println("In CheckAlive Thread");
 	}
 
 	public void run()
@@ -34,16 +35,27 @@ public class CheckAlive implements Runnable
 		boolean flag = true;
 		while(flag)
 		{
+			System.out.println("In CheckAlive Run");
 			//TODO: maybe introduce a delay
 			//Check that all neighbours are alive
 			if(!isAlive(Neighbourhood.getPreIp())) //Predecessor
 				updatePredecessor();
-			if(!isAlive(Neighbourhood.getPrePreIp())) //PrePredecessor
-				updatePrePredecessor();
+			
+			if (Neighbourhood.getPrePreId() != Neighbourhood.getMyId()) //so we're not talking to ourselves
+			{
+				if(!isAlive(Neighbourhood.getPrePreIp())) //PrePredecessor
+					updatePrePredecessor();
+			}
+			
 			if(!isAlive(Neighbourhood.getSucIp())) //Successor
 				updateSuccessor();
-			if(!isAlive(Neighbourhood.getPrePreIp())) //SucSuccessor
-				updateSucSuccessor();
+			
+			if (Neighbourhood.getSucSucId() != Neighbourhood.getMyId()) //so we're not talking to ourselves
+				
+			{
+				if(!isAlive(Neighbourhood.getSucSucIp())) //SucSuccessor
+					updateSucSuccessor();
+			}
 			
 			//Check that all nodes tracking this node are alive
 			 trackingIps = Neighbourhood.getIpList();
