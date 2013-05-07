@@ -11,7 +11,6 @@ import java.util.Random;
 
 public class ClientProtocol 
 {
-	private Neighbourhood neighbourhood = new Neighbourhood();
 	private int temp_key = 0;
 	private int pre_key = 0;
 	private int suc_key = 0;
@@ -35,7 +34,7 @@ public class ClientProtocol
 	{
 		Random rand = new Random(); // Create the object. note seed is current time by default
 		temp_key = rand.nextInt(Integer.MAX_VALUE) + 1; //+1 to make sure it isn't 0. this value is still way below our max
-		return neighbourhood.getSuperNodeIP();
+		return Neighbourhood.getSuperNodeIP();
 	}
 	
 	//Function to decide what message to send within the join overlay protocol. 
@@ -54,10 +53,10 @@ public class ClientProtocol
 		{
 			isFirstMessage = false; //no longer going to be talking to supernode
 			suc_key = getKey(message);// set the initial suc_key to be the supernodes key (which will be changed to pre_key next loop)
-			suc_IP = neighbourhood.getSuperNodeIP();//set the initial successor IP as the supernode
+			suc_IP = Neighbourhood.getSuperNodeIP();//set the initial successor IP as the supernode
 			if (suc_key == temp_key) // if the random key was the supernodes key
 				temp_key = temp_key + 1;
-			return neighbourhood.getSuperNodeIP();
+			return Neighbourhood.getSuperNodeIP();
 		}
 		else
 		{
@@ -67,7 +66,7 @@ public class ClientProtocol
 			suc_IP = getIP(message);//set theh new successor IP
 			
 			// if we are sitting in between the 2 we can slot in and exit or if we are the first to join
-			if ((suc_key > temp_key && temp_key > pre_key) || (suc_IP.equals(neighbourhood.getSuperNodeIP())) ) 
+			if ((suc_key > temp_key && temp_key > pre_key) || (suc_IP.equals(Neighbourhood.getSuperNodeIP())) ) 
 			{
 				Neighbourhood.setMyId(Integer.toString(temp_key));	
 				try 
@@ -87,8 +86,8 @@ public class ClientProtocol
 	
 	public boolean isSufficientForOverlay() 
 	{
-		String sucsucIP = neighbourhood.getSucSucIp();
-		String myIP = neighbourhood.getMyIp();
+		String sucsucIP = Neighbourhood.getSucSucIp();
+		String myIP = Neighbourhood.getMyIp();
 		
 		if(sucsucIP.equals(myIP))
 			return false;
@@ -106,7 +105,7 @@ public class ClientProtocol
 		Neighbourhood.setSucId(Integer.toString(suc_key));
 		String response = null;
 		String[] IP = {pre_IP, suc_IP};
-		String[] updateCommands = {"UPDATESUCCESSOR " + Neighbourhood.getMyId() + Neighbourhood.getMyIp(), "UPDATEPREDECESSOR " + Neighbourhood.getMyId() + Neighbourhood.getMyIp()};
+		String[] updateCommands = {"UPDATESUCCESSOR " + Neighbourhood.getMyId() + " " + Neighbourhood.getMyIp(), "UPDATEPREDECESSOR " + Neighbourhood.getMyId() + " " + Neighbourhood.getMyIp()};
 				
 		for(int i=0; i<2 ; i++)
 		{
@@ -129,7 +128,7 @@ public class ClientProtocol
 	        {
 				response = receiver.readLine();//read the response
 				if (!response.equals("ACK"));
-				System.out.println("failed to tell neighbourhood to update itself");
+				System.out.println("failed to tell Neighbourhood to update itself");
 			} 
 	        catch (IOException e) 
 	        {
@@ -404,6 +403,19 @@ public class ClientProtocol
 		
 		//TODO have not dealt with if this is not the right node in which case we receive a "ASK ####"
 		isAck = processResponseMessage(response);//will be true if server ACKed storage of key
+		sender.close();
+		try {
+			receiver.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return isAck;
 	}
 	

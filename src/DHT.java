@@ -7,7 +7,7 @@ import java.util.List;
 public class DHT {
 
 	
-	private static ArrayList< List<String>> ipTable = null;//Table of ip lists indexed according to whether
+	private static ArrayList< ArrayList<String>> ipTable = null;//Table of ip lists indexed according to whether
 														   //associate with the same file key. The index is
 														   //maintained externally by the lookup table
 	private static ArrayList<String> hashLookup = null;//Lookup table used as reference for ip lists.
@@ -30,16 +30,16 @@ public class DHT {
 		else
 		{
 			hashLookup.add(fileKey);
-			List<String> temp = new ArrayList<String>();
+			ArrayList<String> temp = new ArrayList<String>();
 			temp.add(ip);
-			ipTable.add(hashLookup.indexOf(fileKey),temp);
+			ipTable.add(hashLookup.indexOf(fileKey), temp);
 		}
 	}
 	
-	public static void main(String[] args) 
+	/*public static void main(String[] args) 
 	{
 		// TODO Auto-generated method stub
 
 	}
-
+*/
 }

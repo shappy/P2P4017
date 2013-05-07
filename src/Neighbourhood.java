@@ -1,5 +1,3 @@
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,22 +26,12 @@ public class Neighbourhood
 //CheckAlive now monitors tracking nodes, changed distributeFileKey() function
 	private static int swarmSize;
 	
-	private static boolean isSuperNode = false;
-	private String superNodeIP ="146.141.125.68"; //node to contact first 
+	private static boolean isSuperNode = true;
+	private static String superNodeIP ="146.141.125.40"; //node to contact first 
 	
 
-	public Neighbourhood()
+	public static synchronized void setMyIp(String own_IP)
 	{
-		String own_IP ="";
-		try 
-		{
-			own_IP = InetAddress.getLocalHost().getHostAddress();
-		} 
-		catch (UnknownHostException e) 
-		{
-			e.printStackTrace();
-		}
-		
 		myIp = own_IP;
 		sucIp = own_IP;
 		sucSucIp = own_IP;
@@ -55,32 +43,28 @@ public class Neighbourhood
 		return myId;
 	}
 
-	public static synchronized void setMyId(String myId) {
-		Neighbourhood.myId = myId;
+	public static synchronized void setMyId(String myIdarg) {
+		myId = myIdarg;
 	}
 
 	public static synchronized String getMyIp() {
 		return myIp;
 	}
 
-	public static synchronized void setMyIp(String myIp) {
-		Neighbourhood.myIp = myIp;
-	}
-
 	public synchronized static String getSucId() {
 		return sucId;
 	}
 
-	public static synchronized void setSucId(String sucId) {
-		Neighbourhood.sucId = sucId;
+	public static synchronized void setSucId(String sucIdarg) {
+		sucId = sucIdarg;
 	}
 
 	public static synchronized String getSucIp() {
 		return sucIp;
 	}
 
-	public static synchronized void setSucIp(String sucIp) {
-		Neighbourhood.sucIp = sucIp;
+	public static synchronized void setSucIp(String sucIparg) {
+		sucIp = sucIparg;
 	}
 
 	public static synchronized String getSucSucId() {
@@ -95,16 +79,16 @@ public class Neighbourhood
 		return sucSucIp;
 	}
 
-	public static synchronized void setSucSucIp(String sucSucIp) {
-		Neighbourhood.sucSucIp = sucSucIp;
+	public static synchronized void setSucSucIp(String sucSucIparg) {
+		sucSucIp = sucSucIparg;
 	}
 
 	public static synchronized String getPreId() {
 		return preId;
 	}
 
-	public static synchronized void setPreId(String preId) {
-		Neighbourhood.preId = preId;
+	public static synchronized void setPreId(String preIdarg) {
+		preId = preIdarg;
 	}
 
 	public static synchronized String getPreIp() {
@@ -131,7 +115,6 @@ public class Neighbourhood
 		Neighbourhood.prePreIp = prePreIp;
 	}
 
-	@SuppressWarnings("null")//TODO dont allow warning its not initialized
 	public static synchronized void addToKeyHolderList(String fileKey, String ip)
 	{
 		if(ipLookup.contains(fileKey))
@@ -141,7 +124,7 @@ public class Neighbourhood
 		else
 		{
 			ipLookup.add(fileKey);
-			List<String> temp = null;
+			List<String> temp = new ArrayList<String>();
 			temp.add(ip);
 			keyTable.add(ipLookup.indexOf(fileKey),temp);
 		}
@@ -172,13 +155,13 @@ public class Neighbourhood
 	{
 		Neighbourhood.swarmSize = swarmSize;
 	}
-
-	public String getSuperNodeIP() 
+	
+	public static synchronized String getSuperNodeIP() 
 	{
 		return superNodeIP;
 	}
 
-	public static boolean isSuperNode() 
+	public static synchronized boolean isSuperNode() 
 	{
 		return isSuperNode;
 	}
