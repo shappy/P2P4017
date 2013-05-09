@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.security.*;
@@ -15,7 +16,7 @@ public class Client implements Runnable
 {
 	
 	Thread t;
-	private CheckAlive neighbourhoodWatch; // greg
+	//private CheckAlive neighbourhoodWatch; // greg
 	Socket socket = null;
 	PrintWriter sender = null;
 	BufferedReader receiver = null;
@@ -38,7 +39,7 @@ public class Client implements Runnable
 			//Create socket to talk to server
 			try 
 			{
-				socket = new Socket(IP, 4020);//make a new connection (first and 2nd time is with supernode)
+				socket = new Socket(IP, Neighbourhood.getPort());//make a new connection (first and 2nd time is with supernode)
 				sender = new PrintWriter(socket.getOutputStream(), true);
 		        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			} 
@@ -65,7 +66,7 @@ public class Client implements Runnable
 		
 		//Tell peeps you're in the hood
 		if (!Neighbourhood.isSuperNode())
-		protocol.updateNeighbourhood(socket);
+		protocol.updateNeighbourhood();
 		
 		//Check that it is a sufficiently sized overlay
 		while(!protocol.isSufficientForOverlay())
@@ -80,16 +81,31 @@ public class Client implements Runnable
 				e.printStackTrace();
 			}
 		}
-		
-		//Joined overlay, now watch neighbours
-		neighbourhoodWatch = new CheckAlive();//greg
-		
+				
+		//Update your own prepre and sucsuc before checking alive
+		protocol.updateMyNeighbourhood();
 		
 		// ETAI code for distributing file keys
 		//TODO hash the files that you own
 		//TODO a check to redistribute file keys. This includes toggling a flag after a download completes 
-		List<String> list = null;
+		List<String> list = new ArrayList<String>();
+		String hash1 = hashFile("file1");
+		list.add(hash1);
 		protocol.distributeFileKeys(list, socket); //changed function to accept a List<String>, use accordingly
+		
+		//Joined overlay, now watch neighbours
+		CheckAlive neighbourhoodWatch = new CheckAlive();//greg
+		
+		try 
+		{
+			System.out.println("After setting check alive thread");
+			Thread.sleep(30000000);
+		} 
+		catch (InterruptedException e) 
+		{
+			e.printStackTrace();
+		}
+
 		
 		
 		//Code to wait for user input on what file he/she wants to download

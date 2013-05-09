@@ -7,13 +7,13 @@ public class Node
 {
 	
 	private MultiThreadedServer server = null;
-	//private Client client = null;
+	private Client client = null;
 
 	
 	public Node()
 	{
-		this.server = new MultiThreadedServer(4018);
-		//this.client = new Client();
+		this.server = new MultiThreadedServer(Neighbourhood.getPort());
+		this.client = new Client();
 	}
 	
 	public static void main(String[] args) 

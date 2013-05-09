@@ -1,7 +1,5 @@
-
+//Etai
 public class ServerProtocol {
-
-	private DHT dht = new DHT();
 	
 	String ip_part = null;
 	String command_part = null;
@@ -32,30 +30,33 @@ public class ServerProtocol {
 
     	else if(command_part.equals("RESPONSIBLEKEY"))
     	{
-    		if(Integer.parseInt(Neighbourhood.getSucId()) >= Integer.parseInt(key_part))
+    		if(Integer.parseInt(Neighbourhood.getSucId()) >= Integer.parseInt(key_part) && Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(key_part))
     		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucIp();}
     		
-    		else if (Integer.parseInt(Neighbourhood.getSucId()) >= Integer.parseInt(key_part))
+    		else if (Integer.parseInt(Neighbourhood.getSucSucId()) >= Integer.parseInt(key_part))
     		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucSucIp();}
-    		
+    			
     		else {response = "ASK " + Neighbourhood.getSucSucIp();}
     	}
     	
     	else if(command_part.equals("STOREKEY"))
     	{
     		if (Integer.parseInt(Neighbourhood.getMyId()) >= Integer.parseInt(key_part) && !(Integer.parseInt(Neighbourhood.getPreId()) >= Integer.parseInt(key_part)))
-    		{response = "ACK";}
+    		{
+    			DHT.addToDHT(key_part, ip_part);
+    			response = "ACK";
+    		}
     		else 
     		{response = "ASK " + Neighbourhood.getSucSucIp();}
     	}
     	
     	else if(command_part.equals("NODELIST"))
     	{
-    		response = "NODESWITHFILE " + dht.getIpList(key_part).get(0);
+    		response = "NODESWITHFILE " + DHT.getIpList(key_part).get(0);
     		
-    		for(int i = 1; i < dht.getIpList(key_part).size(); i++ )
+    		for(int i = 1; i < DHT.getIpList(key_part).size(); i++ )
     		{
-    			response = response + " " + dht.getIpList(key_part).get(i);
+    			response = response + " " + DHT.getIpList(key_part).get(i);
     		}
     	}
     		

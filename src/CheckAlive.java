@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.lang.String;
 
-
+//Greg
 public class CheckAlive implements Runnable 
 {
 	//Data Members
@@ -83,7 +83,7 @@ public class CheckAlive implements Runnable
 		try 
 		{
 			socket = new Socket();
-			socket.connect(new InetSocketAddress(IPadr,4017),timeoutDuration); //set the timeout duration
+			socket.connect(new InetSocketAddress(IPadr,Neighbourhood.getPort()),timeoutDuration); //set the timeout duration
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -124,7 +124,7 @@ public class CheckAlive implements Runnable
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(Neighbourhood.getPrePreIp(),4017); //speaking to pre-predecessor
+			socket = new Socket(Neighbourhood.getPrePreIp(),Neighbourhood.getPort()); //speaking to pre-predecessor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -179,7 +179,7 @@ public class CheckAlive implements Runnable
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(Neighbourhood.getPreIp(),4017); //speaking to predecessor
+			socket = new Socket(Neighbourhood.getPreIp(),Neighbourhood.getPort()); //speaking to predecessor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -221,7 +221,7 @@ public class CheckAlive implements Runnable
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(Neighbourhood.getSucSucIp(),4017); //speaking to suc-successor
+			socket = new Socket(Neighbourhood.getSucSucIp(),Neighbourhood.getPort()); //speaking to suc-successor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 
@@ -275,7 +275,7 @@ public class CheckAlive implements Runnable
 		//Initialise socket and read/write
 		try 
 		{
-			socket = new Socket(Neighbourhood.getSucIp(),4017); //speaking to suc-successor
+			socket = new Socket(Neighbourhood.getSucIp(),Neighbourhood.getPort()); //speaking to suc-successor
 			sender = new PrintWriter(socket.getOutputStream(),true);
 			receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} 

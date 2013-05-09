@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+//Etai
 public class ServerThread implements Runnable{
 
 	private Socket client_socket;

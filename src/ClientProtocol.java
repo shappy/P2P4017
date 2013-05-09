@@ -30,6 +30,7 @@ public class ClientProtocol
 	
 	
 	//Function to get the initial supernode ID which also means we have started the sequence and must get random number
+	//Shappy
 	public String getSuperNodeIP()
 	{
 		Random rand = new Random(); // Create the object. note seed is current time by default
@@ -38,6 +39,7 @@ public class ClientProtocol
 	}
 	
 	//Function to decide what message to send within the join overlay protocol. 
+	//Shappy
 	public String sendJoin()
 	{
 		if (isFirstMessage) // If we are talking to the supernode the first question is key
@@ -47,6 +49,7 @@ public class ClientProtocol
 	}
 	
 	//Function to decide which IP to send back and also what to do with the received information
+	//Shappy
 	public String receiveJoin(String message)
 	{
 		if (isFirstMessage) // If we are talking to the supernode send back supernode IP to ask for successor
@@ -84,19 +87,21 @@ public class ClientProtocol
 		return getIP(message);
 	}
 	
+	//Shappy
 	public boolean isSufficientForOverlay() 
 	{
-		String sucsucIP = Neighbourhood.getSucSucIp();
-		String myIP = Neighbourhood.getMyIp();
+		String sucIP = Neighbourhood.getSucIp();
+		String preIP = Neighbourhood.getPreIp();
 		
-		if(sucsucIP.equals(myIP))
+		if(sucIP.equals(preIP))
 			return false;
 		else 
 			return true;
 	}
 	
 	//This function is in charge of saving the successor and predecessor and telling them to update their fields
-	public void updateNeighbourhood(Socket socket)
+	//Shappy
+	public void updateNeighbourhood()
 	{
 		//Update predecessor and successor
 		Neighbourhood.setPreIp(pre_IP);
@@ -106,12 +111,14 @@ public class ClientProtocol
 		String response = null;
 		String[] IP = {pre_IP, suc_IP};
 		String[] updateCommands = {"UPDATESUCCESSOR " + Neighbourhood.getMyId() + " " + Neighbourhood.getMyIp(), "UPDATEPREDECESSOR " + Neighbourhood.getMyId() + " " + Neighbourhood.getMyIp()};
-				
+		Socket socket = null;
+
+		
 		for(int i=0; i<2 ; i++)
 		{
 			try 
 			{
-				socket = new Socket(IP[i], 4020);
+				socket = new Socket(IP[i], Neighbourhood.getPort());
 				sender = new PrintWriter(socket.getOutputStream(), true);
 		        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			} 
@@ -127,7 +134,7 @@ public class ClientProtocol
 	        try 
 	        {
 				response = receiver.readLine();//read the response
-				if (!response.equals("ACK"));
+				if (!response.equals("ACK"))
 				System.out.println("failed to tell Neighbourhood to update itself");
 			} 
 	        catch (IOException e) 
@@ -135,13 +142,82 @@ public class ClientProtocol
 				e.printStackTrace();
 			}
 		}
+		
+		try 
+		{
+			sender.close();
+			receiver.close();
+			socket.close();
+		} 
+		catch (IOException e) { e.printStackTrace();}
 			
 	}
 	
+	//Shappy
+	public void updateMyNeighbourhood() 
+	{
+
+		String response = null;
+		Socket socket = null;
+
+		String[] IP = {Neighbourhood.getSucIp(), Neighbourhood.getPreIp()};
+		String[] updateCommands = {"SUCCESSORSKEY " , "PREDECESSORSKEY "};
+		
+		for(int i=0; i<2 ; i++)
+		{
+			try 
+			{
+				socket = new Socket(IP[i], Neighbourhood.getPort());
+				sender = new PrintWriter(socket.getOutputStream(), true);
+		        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			} 
+			catch (UnknownHostException e) {
+				e.printStackTrace();
+			} 
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+	
+	        sender.println(updateCommands[i]);//send the right command
+	        
+	        try 
+	        {
+				response = receiver.readLine();//read the response
+				
+				if (i==0)
+				{
+					Neighbourhood.setSucSucId( Integer.toString(getKey(response)));
+					Neighbourhood.setSucSucIp( getIP(response));
+				}
+				else if(i==1)
+				{
+					Neighbourhood.setPrePreId( Integer.toString(getKey(response)));
+					Neighbourhood.setPrePreIp( getIP(response));
+				}
+			} 
+	        catch (IOException e) 
+	        {
+				e.printStackTrace();
+			}
+		}
+		
+	
+		try 
+		{
+			sender.close();
+			receiver.close();
+			socket.close();
+		} 
+		catch (IOException e) { e.printStackTrace();}
+				
+	}
+
+	
 	//Macro function for distributing a single file key
+	//Etai
 	public void distributeFileKeys(List<String> fileKeys, Socket socket)
 	{
-		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
+		ip_part = Neighbourhood.getSucSucIp();//Statically access the sucSuccessor ip address		
 		boolean isNodeFound = false;
 		boolean isKeyStored = false;
 		String response = null;
@@ -149,13 +225,20 @@ public class ClientProtocol
 		//Store every key in the list (Greg)
 		for (int i=0; i<fileKeys.size(); i++)
 		{
+			//First check if I am responsible for holding this key
+    		if (Integer.parseInt(Neighbourhood.getMyId()) >= Integer.parseInt(fileKeys.get(i)) && (Integer.parseInt(Neighbourhood.getPreId()) < Integer.parseInt(fileKeys.get(i))))
+    		{
+    			DHT.addToDHT(fileKeys.get(i), Neighbourhood.getMyIp());//store that info
+    			isKeyStored = true;
+    		}
+    		
 			while(!isKeyStored)//while the key has not been stored in appropriate node...
 			{	
 				do //Initiate comms and receive comms until found the correct node to store key with
 				{	
 					try
 					{
-						socket = new Socket(ip_part,4017);
+						socket = new Socket(ip_part,Neighbourhood.getPort());
 						sender = new PrintWriter(socket.getOutputStream(), true);
 				        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));			
 					}
@@ -176,8 +259,10 @@ public class ClientProtocol
 				
 				isKeyStored = storeKey(fileKeys.get(i), socket);//Init comms, and send fileKey to the found node.
 												//returns true if receive ACK 
+				
 				isNodeFound = false;//If not ACKed, must reset inner loop and continue with search for node.
 			}
+			isKeyStored = false;
 		}
 		
 		//try and close socket and read/write
@@ -190,6 +275,7 @@ public class ClientProtocol
 		catch (IOException e) { e.printStackTrace(); }	
 	}
 	
+	//Etai
 	public void retrieveFileKeyList(String fileKey, Socket socket)
 	{
 		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
@@ -203,7 +289,7 @@ public class ClientProtocol
 			{	
 				try
 				{
-					socket = new Socket(ip_part,4017);
+					socket = new Socket(ip_part,Neighbourhood.getPort());
 					sender = new PrintWriter(socket.getOutputStream(), true);
 			        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));			
 				}
@@ -228,6 +314,7 @@ public class ClientProtocol
 		}
 	}
 	
+	//Shappy
 	public List<Integer> processIndexResponse(String message) 
 	{
 		List<Integer> indices = new ArrayList<Integer>();
@@ -239,6 +326,7 @@ public class ClientProtocol
 		return indices;
 	}
 	
+	//Shappy
 	public String processPortResponse(String message) 
 	{
 		string_array = message.split(" "); //split the string by the " " = space parameter if only one word it returns that word
@@ -376,7 +464,7 @@ public class ClientProtocol
 	{
 		try
 		{
-			socket = new Socket(ip_part,4017);
+			socket = new Socket(ip_part, Neighbourhood.getPort());
 			sender = new PrintWriter(socket.getOutputStream(), true);
 	        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));			
 		}
@@ -403,6 +491,10 @@ public class ClientProtocol
 		
 		//TODO have not dealt with if this is not the right node in which case we receive a "ASK ####"
 		isAck = processResponseMessage(response);//will be true if server ACKed storage of key
+		if(isAck)
+		{
+			Neighbourhood.addToKeyHolderList(fileKey, ip_part);
+		}
 		sender.close();
 		try {
 			receiver.close();
@@ -452,6 +544,7 @@ public class ClientProtocol
 		string_array = message.split(" "); //split the string by the " ". we want second parameter which is IP
 		return string_array[2];
 	}
+
 
 	
 
