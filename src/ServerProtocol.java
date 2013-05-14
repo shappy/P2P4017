@@ -1,10 +1,22 @@
+import java.io.IOException;
+
+import java.io.*;
+import java.net.InetSocketAddress;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
 //Etai
 public class ServerProtocol {
 	
-	String ip_part = null;
-	String command_part = null;
-	String key_part = null;
-	String clientId_part = null;
+	String ip_part = "";
+	String command_part = "";
+	String key_part = "";
+    String hash_part = ""; //greg
+    String index_part = ""; //greg
+	String clientId_part = "";
+	String indexURL = "";
 	int swarm_size = Neighbourhood.getSwarmSize();
     
     public String respond(String input) 
@@ -27,8 +39,12 @@ public class ServerProtocol {
 
     	else if(command_part.equals("RESPONSIBLEKEY"))
     	{
+    		
+    		if (Integer.parseInt(Neighbourhood.getMyId()) >= Integer.parseInt(key_part) && (Integer.parseInt(Neighbourhood.getPreId()) < Integer.parseInt(key_part)))
+    		{response = "THISNODERESPONSIBLE "  + Neighbourhood.getMyIp();}
+
     		//if my sucessor's id is < than mine, I am the largest id on the overlay and therefore responsible
-    		if(Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(Neighbourhood.getMyId()))
+    		else if(Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(Neighbourhood.getMyId()))
     		{response = "THISNODERESPONSIBLE "  + Neighbourhood.getMyIp();}
     		
     		else if(Integer.parseInt(Neighbourhood.getSucId()) >= Integer.parseInt(key_part) && Integer.parseInt(Neighbourhood.getMyId()) < Integer.parseInt(key_part))
@@ -67,7 +83,21 @@ public class ServerProtocol {
     		
     	//TODO:other reponses to queries for key responsibility
     	
-    	
+    	else if(command_part.equals("REQUESTINDEXSOFHASH")) //greg
+        {
+            //TODO: from the OwnFiles object (or whatever), return the indices of the file segments that you posses 
+            //for the file key_part 
+
+        }
+
+        else if(command_part.equals("REQUEST")) //greg
+        {         
+            //indexURL = "/" + filename + "/" + fileIndex //return the URL where the index can be retrieved
+            ServeFileIndex(indexURL); //create the http server to serve the file index at the specific URL
+            //response = "ACK PORTNUM" + indexURL;
+            //TODO index URL real thing
+        }
+
     	return response;
     }
     
@@ -92,7 +122,13 @@ public class ServerProtocol {
 				break;
 			case 3: 
 				command_part = temp[0];
-				key_part = temp[1];
+                if(command_part.equals("REQUEST")) //Greg
+                {
+                    hash_part = temp[1];
+                    index_part = temp[2];
+                    break;
+                }
+                key_part = temp[1];
 				ip_part = temp[2];
 				System.out.println("ip recieved is: " + ip_part);
 				break;
@@ -106,5 +142,34 @@ public class ServerProtocol {
 				break;
 		}		
     }
+
+
+    private void ServeFileIndex(String indexDir) //greg
+    {
+        HttpServer server = null;
+		try 
+		{
+			server = HttpServer.create(new InetSocketAddress(Neighbourhood.getMyIp(), Neighbourhood.getPort()), 0);
+		} 
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        server.createContext(indexDir, new MyHandler());
+        server.setExecutor(null); // creates a default executor
+        server.start();
+    }
+
+    static class MyHandler implements HttpHandler //greg
+    {
+            public void handle(HttpExchange t) throws IOException 
+        {
+                    String response = "";//assign the index of the file here, as a byte
+                    t.sendResponseHeaders(200, response.length());
+                    OutputStream os = t.getResponseBody();
+                    os.write(response.getBytes());
+                    os.close();
+        }
+    }   
     
 }

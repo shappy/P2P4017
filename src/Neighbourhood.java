@@ -20,16 +20,16 @@ public class Neighbourhood
 	private static String prePreId;
 	private static String prePreIp;
 	
-	private static final int port = 4018;
+	private static final int port = 4025;
 	
-	private static ArrayList< List<String>> keyTable = null;
-	private static ArrayList<String> ipLookup = null;
+	private static ArrayList< List<String>> keyTable = new ArrayList< List<String>>();
+	private static ArrayList<String> ipLookup = new ArrayList<String>();
 	
 //CheckAlive now monitors tracking nodes, changed distributeFileKey() function
 	private static int swarmSize = (int)Math.pow(2, 10);
 	
 	private static boolean isSuperNode = false;
-	private static String superNodeIP ="146.141.125.160"; //node to contact first 
+	private static String superNodeIP ="192.168.0.17"; //node to contact first 
 	
 
 	public static synchronized void setMyIp(String own_IP)

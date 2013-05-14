@@ -330,8 +330,13 @@ public class ClientProtocol
 	public String processPortResponse(String message) 
 	{
 		string_array = message.split(" "); //split the string by the " " = space parameter if only one word it returns that word
-		return string_array[1];//return the port number to use in the http method
+		if (string_array[0].equals("REJECT"))
+			return "REJECT";
+		return string_array[2];//return the port number to use in the http method
 	}
+	
+	
+	
 	
 	//CHECK ALIVE QUERY FUNCTIONS (greg)
 	
@@ -374,9 +379,9 @@ public class ClientProtocol
 
 	//From Shappy
 	
-	public String getIndexQuery(String hash) 
+	public String getIndexQuery(String key) 
 	{
-		return "REQUESTINDEXSOFHASH " + hash;
+		return "REQUESTINDEXSOFHASH " + key;
 	}
 	
 	public String getPortNum(String hash, int index) 

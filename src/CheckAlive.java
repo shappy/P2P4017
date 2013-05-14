@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.lang.String;
 
@@ -16,7 +17,7 @@ public class CheckAlive implements Runnable
 	private final int timeoutDuration = 15000; //milliseconds
 	private final int checkAlivePause = 3000; //milliseconds
 	private ClientProtocol protocol;
-	List<String> trackingIps = null;
+	List<String> trackingIps = new ArrayList<String>();
 	private Socket socket = null;
 	private PrintWriter sender = null;
 	private BufferedReader receiver = null;
@@ -61,12 +62,17 @@ public class CheckAlive implements Runnable
 			 trackingIps = Neighbourhood.getIpList();
 			 for (int i=0; i<trackingIps.size(); i++)
 			 {
-				 if(!isAlive(trackingIps.get(i)))
+				 if(trackingIps.get(i) != Neighbourhood.getMyIp())
 				 {
-					 //the tracking node is dead, redistribute files 
-					 //TODO: Maybe this should go on another thread?
-					 protocol.distributeFileKeys(Neighbourhood.getKeyList(trackingIps.get(i)), socket);
+					 if(!isAlive(trackingIps.get(i)))
+					 {
+						 //the tracking node is dead, redistribute files 
+						 //TODO: Maybe this should go on another thread?
+						 protocol.distributeFileKeys(Neighbourhood.getKeyList(trackingIps.get(i)), socket);
+					 }
 				 }
+
+				 
 			 }
 			
 		}

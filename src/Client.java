@@ -82,9 +82,21 @@ public class Client implements Runnable
 				e.printStackTrace();
 			}
 		}
+		
+		
 				
 		//Update your own prepre and sucsuc before checking alive
 		protocol.updateMyNeighbourhood();
+		
+		try 
+		{
+			System.out.println("After setting check alive thread");
+			Thread.sleep(300000000);
+		} 
+		catch (InterruptedException e) 
+		{
+			e.printStackTrace();
+		}
 		
 		// ETAI code for distributing file keys
 		//TODO hash the files that you own
@@ -92,7 +104,7 @@ public class Client implements Runnable
 		//List<String> list = new ArrayList<String>();
 		//String hash1 = hashFile("file1");
 		//list.add(hash1);
-		protocol.distributeFileKeys(getFileKeysFromDirectory(""), socket); //changed function to accept a List<String>, use accordingly
+		protocol.distributeFileKeys(getFileKeysFromDirectory("/Users/arielshappy/Desktop/P2P4017-shappyBranch 3"), socket); //changed function to accept a List<String>, use accordingly
 		
 		//Joined overlay, now watch neighbours
 		CheckAlive neighbourhoodWatch = new CheckAlive();//greg
@@ -215,7 +227,7 @@ public class Client implements Runnable
 	
 	public List<String> getFileKeysFromDirectory(String srcDirectory)
 	{
-		List<String> fileKeys = new ArrayList<>();
+		List<String> fileKeys = new ArrayList<String>();
 		File srcFolder = new File(srcDirectory);
 		
 		String files[] = srcFolder.list();

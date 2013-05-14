@@ -8,10 +8,10 @@ import java.util.List;
 public class DHT {
 
 	
-	private static ArrayList< ArrayList<String>> ipTable = null;//Table of ip lists indexed according to whether
+	private static ArrayList< ArrayList<String>> ipTable = new ArrayList< ArrayList<String>>();//Table of ip lists indexed according to whether
 														   //associate with the same file key. The index is
 														   //maintained externally by the lookup table
-	private static ArrayList<String> hashLookup = null;//Lookup table used as reference for ip lists.
+	private static ArrayList<String> hashLookup = new ArrayList<String>();//Lookup table used as reference for ip lists.
 	
 	public static synchronized List<String> getIpList(String fileKey)//Returns ip addresses for a given fileKey
 	{ 
