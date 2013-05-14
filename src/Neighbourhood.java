@@ -26,7 +26,7 @@ public class Neighbourhood
 	private static ArrayList<String> ipLookup = null;
 	
 //CheckAlive now monitors tracking nodes, changed distributeFileKey() function
-	private static int swarmSize = 10;
+	private static int swarmSize = (int)Math.pow(2, 10);
 	
 	private static boolean isSuperNode = false;
 	private static String superNodeIP ="146.141.125.160"; //node to contact first 

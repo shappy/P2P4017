@@ -6,9 +6,6 @@ public class ServerProtocol {
 	String key_part = null;
 	String clientId_part = null;
 	int swarm_size = Neighbourhood.getSwarmSize();
-
-
-
     
     public String respond(String input) 
     {
@@ -30,7 +27,15 @@ public class ServerProtocol {
 
     	else if(command_part.equals("RESPONSIBLEKEY"))
     	{
-    		if(Integer.parseInt(Neighbourhood.getSucId()) >= Integer.parseInt(key_part) && Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(key_part))
+    		//if my sucessor's id is < than mine, I am the largest id on the overlay and therefore responsible
+    		if(Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(Neighbourhood.getMyId()))
+    		{response = "THISNODERESPONSIBLE "  + Neighbourhood.getMyIp();}
+    		
+    		else if(Integer.parseInt(Neighbourhood.getSucId()) >= Integer.parseInt(key_part) && Integer.parseInt(Neighbourhood.getMyId()) < Integer.parseInt(key_part))
+    		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucIp();}
+    		
+    		//if my suc suc id is < than my suc id, my suc suc is the largest id on the overlay and responsible
+    		else if(Integer.parseInt(Neighbourhood.getSucSucId()) < Integer.parseInt(Neighbourhood.getSucId()))
     		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucIp();}
     		
     		else if (Integer.parseInt(Neighbourhood.getSucSucId()) >= Integer.parseInt(key_part))

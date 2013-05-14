@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -88,10 +89,10 @@ public class Client implements Runnable
 		// ETAI code for distributing file keys
 		//TODO hash the files that you own
 		//TODO a check to redistribute file keys. This includes toggling a flag after a download completes 
-		List<String> list = new ArrayList<String>();
-		String hash1 = hashFile("file1");
-		list.add(hash1);
-		protocol.distributeFileKeys(list, socket); //changed function to accept a List<String>, use accordingly
+		//List<String> list = new ArrayList<String>();
+		//String hash1 = hashFile("file1");
+		//list.add(hash1);
+		protocol.distributeFileKeys(getFileKeysFromDirectory(""), socket); //changed function to accept a List<String>, use accordingly
 		
 		//Joined overlay, now watch neighbours
 		CheckAlive neighbourhoodWatch = new CheckAlive();//greg
@@ -110,29 +111,25 @@ public class Client implements Runnable
 		
 		//Code to wait for user input on what file he/she wants to download
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-		String fileName ="";  
-		String hash = "";
+		String key ="";  
 		List<String> key_list = null;
 		FileDownloader file_downloader = null;
 
-		while(!fileName.equals("exit"))
+		while(!key.equalsIgnoreCase("exit"))
 		{
-			System.out.println("File to Download (exit to cancel): ");
+			System.out.println("Key of File to Download (exit to quit overlay): ");
 			try 
 			{
-				fileName = input.readLine();
+				key = input.readLine();
 			} 
 			catch (IOException e) 
 			{
 				e.printStackTrace();
 			}
 			
-			//TODO Prompted by the user who desires downloading a specific key
-			hash = hashFile(fileName);
-			protocol.retrieveFileKeyList(hash, socket);
+			protocol.retrieveFileKeyList(key, socket);
 			key_list = protocol.getKeyList();
-			file_downloader = new FileDownloader(hash, key_list);//send the key list and the files key to be downloaded
-			
+			file_downloader = new FileDownloader(key, key_list);//send the key list and the files key to be downloaded
 		}
 		
 		
@@ -216,8 +213,18 @@ public class Client implements Runnable
         //return Long.parseLong(fileHash, 16);
 	}
 	
-	
-	
+	public List<String> getFileKeysFromDirectory(String srcDirectory)
+	{
+		List<String> fileKeys = new ArrayList<>();
+		File srcFolder = new File(srcDirectory);
+		
+		String files[] = srcFolder.list();
+		for (int i = 0; i < files.length; i++)
+		{
+			fileKeys.add(hashFile(files[i]));
+		}
+		return fileKeys;
+	}
 }
 
 

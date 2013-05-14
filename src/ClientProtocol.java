@@ -34,7 +34,7 @@ public class ClientProtocol
 	public String getSuperNodeIP()
 	{
 		Random rand = new Random(); // Create the object. note seed is current time by default
-		temp_key = rand.nextInt(Integer.MAX_VALUE) + 1; //+1 to make sure it isn't 0. this value is still way below our max
+		temp_key = (rand.nextInt(Integer.MAX_VALUE)%Neighbourhood.getSwarmSize()) + 1; //+1 to make sure it isn't 0. this value is still way below our max
 		return Neighbourhood.getSuperNodeIP();
 	}
 	
