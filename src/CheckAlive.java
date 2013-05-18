@@ -29,7 +29,7 @@ public class CheckAlive implements Runnable
 		t = new Thread(this); //Assign this object to its own thread
 		protocol = new ClientProtocol();
 		t.start();
-		System.out.println("In CheckAlive Thread");
+		//System.out.println("In CheckAlive Thread");
 	}
 
 	public void run()
@@ -37,7 +37,7 @@ public class CheckAlive implements Runnable
 		boolean flag = true;
 		while(flag)
 		{
-			System.out.println("In CheckAlive Run");
+			//System.out.println("In CheckAlive Run");
 			//TODO: maybe introduce a delay
 			//Check that all neighbours are alive
 			if(!isAlive(Neighbourhood.getPreIp())) //Predecessor

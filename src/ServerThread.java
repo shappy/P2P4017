@@ -32,7 +32,7 @@ public class ServerThread implements Runnable{
             requestFromClient = receiver.readLine();
             System.out.println("The other client sent to my server: " + requestFromClient);
             responseToClient = protocol.respond(requestFromClient);
-            System.out.println("I as the server is sending: " + responseToClient);
+            System.out.println("I am the server is sending: " + responseToClient);
             
             //Respond to the client
             sender.println(responseToClient);

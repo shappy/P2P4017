@@ -23,7 +23,7 @@ public class FileDownloader implements Runnable
 	String key = "";
 	
 	//private Neighbourhood neighbours;
-	private ClientProtocol protocol;
+	private ClientProtocol protocol = new ClientProtocol();
 	private Socket socket = null;
 	private PrintWriter sender = null;
 	private BufferedReader receiver = null;

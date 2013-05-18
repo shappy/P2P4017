@@ -19,6 +19,7 @@ public class ServerProtocol {
     String index_part = ""; //greg
 	String clientId_part = "";
 	String indexURL = "";
+	static String IndexURLDirectory = "";
 	int swarm_size = Neighbourhood.getSwarmSize();
     
     public String respond(String input) 
@@ -104,14 +105,20 @@ public class ServerProtocol {
     	
     	else if(command_part.equals("REQUESTINDEXSOFHASH")) //greg
         {
-            response = "ACK " + OwnFileList.getNumberOfIndices(key_part) + " " + OwnFileList.getIndexList(key_part).toString();
+    		String temp = "";
+    		for (int i=0; i<OwnFileList.getIndexList(key_part).size(); i++)
+    		{
+    			temp = temp + OwnFileList.getIndexList(key_part).get(i) + " ";
+    		}
+            response = "ACK " + OwnFileList.getNumberOfIndices(key_part) + " " + temp;
         }
 
         else if(command_part.equals("REQUEST")) //greg
         {         
-            //indexURL = "/" + filename + "/" + fileIndex //return the URL where the index can be retrieved
+            indexURL = "/" + hash_part + "/" + index_part; //return the URL where the index can be retrieved
+            IndexURLDirectory = index_part;
             ServeFileIndex(indexURL); //create the http server to serve the file index at the specific URL
-            //response = "ACK PORTNUM" + indexURL;
+            response = "ACK " + indexURL;
             //TODO index URL real thing
         }
 
@@ -181,7 +188,7 @@ public class ServerProtocol {
     {
             public void handle(HttpExchange t) throws IOException 
         {
-                    String response = "";//assign the index of the file here, as a byte
+                    String response = IndexURLDirectory;//assign the index of the file here, as a byte
                     t.sendResponseHeaders(200, response.length());
                     OutputStream os = t.getResponseBody();
                     os.write(response.getBytes());

@@ -109,20 +109,21 @@ public class Client implements Runnable
 		//list.add(hash1);
 		try {
 			protocol.distributeFileKeys(socket);
-		} catch (FileNotFoundException e1) {
+		
+			} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} //changed function to accept a List<String>, use accordingly
 		
 		System.out.println("Just before check alive");
 		//Joined overlay, now watch neighbours
-		new CheckAlive();//greg
+		//new CheckAlive();//greg
 
 		
 		//Code to wait for user input on what file he/she wants to download
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 		String key ="";  
-		List<String> ip_list = null;
+		List<String> ip_list = new ArrayList<>();
 		FileDownloader file_downloader = null;
 
 		while(!key.equalsIgnoreCase("exit"))
@@ -137,8 +138,13 @@ public class Client implements Runnable
 				e.printStackTrace();
 			}
 			
-			protocol.retrieveFileKeyList(key, socket);
-			ip_list = protocol.getKeyList();
+			ip_list = DHT.getIpList(key);
+			if(ip_list.isEmpty())
+			{
+				protocol.retrieveFileKeyList(key, socket);
+				ip_list = protocol.getKeyList();
+			}
+			
 			file_downloader = new FileDownloader(key, ip_list);//send the key list and the files key to be downloaded
 		}
 		

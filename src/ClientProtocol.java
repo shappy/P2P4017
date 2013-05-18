@@ -24,7 +24,8 @@ public class ClientProtocol
 	private String suc_IP = null;
 	private String pre_IP = null;
 	private boolean isFirstMessage = true;
-	private String [] string_array = null;
+	private String [] string_array;
+	private static boolean firstDistribute = true;
 	
 	//Socket socket = new Socket();//initialise socket object to use throughout
 	PrintWriter sender = null;//init sender
@@ -227,9 +228,26 @@ public class ClientProtocol
 		boolean isNodeFound = false;
 		boolean isKeyStored = false;
 		String response = null;
-		
-		List<String> fileKeys = getFileKeysFromDirectory("c:\\Users\\Etai\\Desktop\\Source");
-		
+		//If this is the first time we are calling it
+				if(firstDistribute)
+				{
+					firstDistribute = false;
+					//fileKeys contains all the files we own
+					List<String> fileKeys = new ArrayList<String>();
+					try {
+						fileKeys = getFileKeysFromDirectory("c:\\Users\\Etai\\Desktop\\Source");
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					
+				}
+				
+				List<String> fileKeys = OwnFileList.getUndistributedKeyList();
+				//Store every key in the list (Greg)
+		//List<String> fileKeys = new ArrayList<>();
+		//fileKeys.add("500");
 		//Store every key in the list (Greg)
 		for (int i=0; i<fileKeys.size(); i++)
 		{
@@ -267,6 +285,20 @@ public class ClientProtocol
 				}
 				while(!isNodeFound);//Exit loop when storage node is found
 				
+				try
+				{
+					socket = new Socket(ip_part,Neighbourhood.getPort());
+					sender = new PrintWriter(socket.getOutputStream(), true);
+			        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));			
+				}
+				catch (UnknownHostException e) 
+				{
+					e.printStackTrace();
+				}
+				catch (IOException e) 
+				{
+					e.printStackTrace();
+				}
 				isKeyStored = storeKey(fileKeys.get(i), socket);//Init comms, and send fileKey to the found node.
 												//returns true if receive ACK 
 				
@@ -342,7 +374,7 @@ public class ClientProtocol
 		string_array = message.split(" "); //split the string by the " " = space parameter if only one word it returns that word
 		if (string_array[0].equals("REJECT"))
 			return "REJECT";
-		return string_array[2];//return the port number to use in the http method
+		return string_array[1];//return the port number to use in the http method
 	}
 	
 	
@@ -567,36 +599,50 @@ public class ClientProtocol
 
 	public static List<String> getFileKeysFromDirectory(String srcDirectory) throws FileNotFoundException
 	{
+		
 		List<String> fileKeys = new ArrayList<String>();
 		File srcFolder = new File(srcDirectory);
-		
 		File files[] = srcFolder.listFiles();
+		
+		FileReader fis = null;
+		fis = new FileReader(files[0]);
+		char[] characters = new char[20];
+        int read = 0; 
+		ArrayList<Integer> tempIntegers = new ArrayList<Integer>();
+
+        try 
+        {
+			while ((read = fis.read(characters)) != -1) 
+			{	
+				String temp = new String(characters);
+				String[] temp2 = temp.split(" ");
+				int[] temp3 = new int[temp2.length - 1];
+				for (int j = 0; j < temp2.length - 1 ; j++)
+				{
+					temp3[j] = Integer.parseInt(temp2[j]);
+					tempIntegers.add(temp3[j]);
+					System.out.println(temp3[j]);
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
+		
 		for (int i = 0; i < files.length; i++)
 		{
-			FileReader fis = null;
-			fis = new FileReader(files[i]);
-			char[] characters = new char[20];
-	        int read = 0; 
-	        try 
-	        {
-				while ((read = fis.read(characters)) != -1) 
-				{		
-					String temp = new String(characters);
-					String[] temp2 = temp.split(" ");
-					int[] temp3 = new int[temp2.length - 1];
-					for (int j = 0; j < temp2.length - 1 ; j++)
-					{
-						temp3[i] = Integer.parseInt(temp2[j]);
-						System.out.println(temp3[j]);
-					}
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			};
-			
 			fileKeys.add(hashFile(files[i]));
 		}
+		
+		OwnFileList.addFile(fileKeys.get(0));//add the key to the list
+		OwnFileList.setNumberIndices(fileKeys.get(0), 10);//add the number of indices to the list
+		OwnFileList.addListIndices(fileKeys.get(0), tempIntegers);//add the number of indices to the list
+
+		
+		
+			
+		
+			
 		return fileKeys;
 	}
 	
@@ -637,7 +683,7 @@ public class ClientProtocol
 		};
 		byte[] hashBytes = sha1.digest();
 		BigInteger bigInt_hash = new BigInteger(hashBytes);
-		BigInteger bigInt_swarmSize = new BigInteger("50");
+		BigInteger bigInt_swarmSize = new BigInteger(String.valueOf(Neighbourhood.getSwarmSize()));
 		BigInteger bigInt_id = bigInt_hash.mod(bigInt_swarmSize);
 		
         try 
@@ -648,7 +694,7 @@ public class ClientProtocol
 			e.printStackTrace();
 		} 
         //String fileHash = buffer.toString();
-        
+        System.out.println("\nHash is " + bigInt_id.toString());
         //TODO mod by swarm size to get int representation  
         return bigInt_id.toString();//must be a string
         

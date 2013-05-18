@@ -27,6 +27,14 @@ public class OwnFileList
 		own_file_list.get( indexOfList(fileKey) ).addIndex(index);
 	}
 	
+
+	public static void addListIndices(String fileKey, ArrayList<Integer> tempIntegers) 
+	{
+		own_file_list.get( indexOfList(fileKey) ).addIntegerIndex(tempIntegers);
+
+		
+	}
+	
 	public static synchronized void setHasBeenDistributed(String fileKey)
 	{
 		own_file_list.get( indexOfList(fileKey) ).setHasBeenDistributed();
@@ -55,7 +63,40 @@ public class OwnFileList
 		own_file_list.get( indexOfList(fileKey) ).setNumberIndices(numberOfIndices);
 	}
 	
+	public static List<String> getKeyList()
+	{
+		List<String> temp = new ArrayList<String>();
+		for (int i =0; i<own_file_list.size(); i++)
+		{
+			temp.add(own_file_list.get(i).getKey());
+		}
+		return temp;
+	}
 	
+	public static List<String> getUndistributedKeyList() 
+	{
+		List<String> temp = new ArrayList<String>();
+		for (int i =0; i<own_file_list.size(); i++)
+		{
+			if ( !own_file_list.get(i).hasBeenDistributed)
+			{
+				temp.add(own_file_list.get(i).getKey());
+				own_file_list.get(i).setHasBeenDistributed();// WE are assuming this means its been done!!!
+			}
+		}
+		return temp;
+	}
+
+	
+	public static boolean isComplete(String fileKey) 
+	{
+		OwnFile own_file = own_file_list.get( indexOfList(fileKey) );
+		if (own_file.getIndices().size() == own_file.getNumberIndices())
+			return true;
+		else
+		return false;
+	}
+
 	
 	
 	
@@ -71,6 +112,9 @@ public class OwnFileList
 		return i;
 	}
 
+
+	
+	
 
 
 	

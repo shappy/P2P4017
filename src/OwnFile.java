@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class OwnFile 
 {
@@ -40,6 +41,12 @@ public class OwnFile
 	public void setHasBeenDistributed()
 	{
 		hasBeenDistributed  = true;
+	}
+
+	public void addIntegerIndex(ArrayList<Integer> tempIntegers) 
+	{
+		this.indices = tempIntegers;
+		
 	}
 
 }

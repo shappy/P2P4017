@@ -32,7 +32,7 @@ public class MultiThreadedServer implements Runnable
 	            try 
 	            {
 	                client_socket = this.server_socket.accept();
-	                System.out.println("Client has connected."); 
+	                //System.out.println("Client has connected."); 
 	            } 
 	            catch (IOException e) 
 	            {
@@ -45,7 +45,7 @@ public class MultiThreadedServer implements Runnable
 	        try 
 	        {
 				server_socket.close();
-		        System.out.println("Server Stopped.");
+		        //System.out.println("Server Stopped.");
 
 			} catch (IOException e) 
 			{
@@ -57,9 +57,9 @@ public class MultiThreadedServer implements Runnable
 	    {
 	        try 
 	        {
-	        	System.out.println("Opening server socket ... ");
+	        	//System.out.println("Opening server socket ... ");
 	            server_socket = new ServerSocket(server_port);
-	            System.out.println("Server socket listening...");
+	            //System.out.println("Server socket listening...");
 	        } 
 	        catch (IOException e) 
 	        {
