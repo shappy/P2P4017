@@ -19,7 +19,6 @@ public class ServerProtocol {
     String index_part = ""; //greg
 	String clientId_part = "";
 	String indexURL = "";
-	static String IndexURLDirectory = "";
 	int swarm_size = Neighbourhood.getSwarmSize();
     
     public String respond(String input) 
@@ -110,8 +109,7 @@ public class ServerProtocol {
 
         else if(command_part.equals("REQUEST")) //greg
         {         
-            indexURL = "/" + key_part + "/" + index_part; //return the URL where the index can be retrieved
-            IndexURLDirectory = index_part;
+            //indexURL = "/" + filename + "/" + fileIndex //return the URL where the index can be retrieved
             ServeFileIndex(indexURL); //create the http server to serve the file index at the specific URL
             //response = "ACK PORTNUM" + indexURL;
             //TODO index URL real thing
@@ -183,7 +181,7 @@ public class ServerProtocol {
     {
             public void handle(HttpExchange t) throws IOException 
         {
-                    String response = IndexURLDirectory;//assign the index of the file here, as a byte
+                    String response = "";//assign the index of the file here, as a byte
                     t.sendResponseHeaders(200, response.length());
                     OutputStream os = t.getResponseBody();
                     os.write(response.getBytes());

@@ -107,7 +107,12 @@ public class Client implements Runnable
 		//List<String> list = new ArrayList<String>();
 		//String hash1 = hashFile("file1");
 		//list.add(hash1);
-		protocol.distributeFileKeys(socket); //changed function to accept a List<String>, use accordingly
+		try {
+			protocol.distributeFileKeys(socket);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} //changed function to accept a List<String>, use accordingly
 		
 		System.out.println("Just before check alive");
 		//Joined overlay, now watch neighbours

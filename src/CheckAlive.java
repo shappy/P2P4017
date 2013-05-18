@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -70,7 +71,12 @@ public class CheckAlive implements Runnable
 					 {
 						 if(!isAlive(ipList.get(j)))
 						 {
-							 protocol.distributeFileKeys(socket);
+							 try {
+								protocol.distributeFileKeys(socket);
+							 		} catch (FileNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						 }
 					 }
 				 }				 

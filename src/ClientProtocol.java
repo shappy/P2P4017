@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -25,8 +26,6 @@ public class ClientProtocol
 	private boolean isFirstMessage = true;
 	private String [] string_array = null;
 	
-	private static boolean firstDistribute = true;
-	
 	//Socket socket = new Socket();//initialise socket object to use throughout
 	PrintWriter sender = null;//init sender
 	BufferedReader receiver = null;//init receiver
@@ -34,7 +33,7 @@ public class ClientProtocol
 	String command_part = null; //First section of any message - caps section of the message
 	String ip_part = null;//Second section of any message received - The ip string part of the message
 	String hash_part = null;//Third section of any message received - The hashed part of the message
-	List<String> keyList = new ArrayList<String>();//list of ip's which store required file 
+	List<String> keyList = new ArrayList<>();//list of ip's which store required file 
 	
 	
 	//Function to get the initial supernode ID which also means we have started the sequence and must get random number
@@ -223,27 +222,14 @@ public class ClientProtocol
 	
 	//Macro function for distributing a single file key
 	//Etai
-	public void distributeFileKeys(Socket socket)
+	public void distributeFileKeys(Socket socket) throws FileNotFoundException
 	{		
 		boolean isNodeFound = false;
 		boolean isKeyStored = false;
 		String response = null;
 		
-		//If this is the first time we are calling it
-		if(firstDistribute)
-		{
-			firstDistribute = false;
-			//fileKeys contains all the files we own
-			List<String> fileKeys = getFileKeysFromDirectory(Neighbourhood.getDirectory());
-			for (int i=0; i<fileKeys.size(); i++)
-			{
-				OwnFileList.addFile(fileKeys.get(i));//add the key to the list
-				OwnFileList.setNumberIndices(fileKeys.get(i), 10);//add the number of indices to the list
-			}
-			
-		}
+		List<String> fileKeys = getFileKeysFromDirectory("c:\\Users\\Etai\\Desktop\\Source");
 		
-		List<String> fileKeys = OwnFileList.getUndistributedKeyList();
 		//Store every key in the list (Greg)
 		for (int i=0; i<fileKeys.size(); i++)
 		{
@@ -579,7 +565,7 @@ public class ClientProtocol
 		return string_array[2];
 	}
 
-	public static List<String> getFileKeysFromDirectory(String srcDirectory)
+	public static List<String> getFileKeysFromDirectory(String srcDirectory) throws FileNotFoundException
 	{
 		List<String> fileKeys = new ArrayList<String>();
 		File srcFolder = new File(srcDirectory);
@@ -587,6 +573,28 @@ public class ClientProtocol
 		File files[] = srcFolder.listFiles();
 		for (int i = 0; i < files.length; i++)
 		{
+			FileReader fis = null;
+			fis = new FileReader(files[i]);
+			char[] characters = new char[20];
+	        int read = 0; 
+	        try 
+	        {
+				while ((read = fis.read(characters)) != -1) 
+				{		
+					String temp = new String(characters);
+					String[] temp2 = temp.split(" ");
+					int[] temp3 = new int[temp2.length - 1];
+					for (int j = 0; j < temp2.length - 1 ; j++)
+					{
+						temp3[i] = Integer.parseInt(temp2[j]);
+						System.out.println(temp3[j]);
+					}
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			};
+			
 			fileKeys.add(hashFile(files[i]));
 		}
 		return fileKeys;
@@ -595,7 +603,7 @@ public class ClientProtocol
 	public static String hashFile(File fileName)//string: fileName converted by SHA1 to string of hex
 	{
 		MessageDigest sha1 = null;
-		FileReader fis = null;
+		FileInputStream fis = null;
 		try 
 		{
 			sha1 = MessageDigest.getInstance("SHA1");
@@ -608,27 +616,20 @@ public class ClientProtocol
 
 		try 
 		{
-			fis = new FileReader(fileName);
+			fis = new FileInputStream(fileName);
 		} 
 		catch (FileNotFoundException e) 
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		char[] characters = new char[20];
+		byte[] data = new byte[1024];
         int read = 0; 
         try 
         {
-			while ((read = fis.read(characters)) != -1) 
-			{		
-				String temp = new String(characters);
-				String[] temp2 = temp.split(" ");
-				int[] temp3 = new int[temp2.length - 1];
-				for (int i =0; i < temp2.length - 1 ; i++)
-				{
-					temp3[i] = Integer.parseInt(temp2[i]);
-					System.out.println(temp3[i]);
-				}
+			while ((read = fis.read(data)) != -1) 
+			{
+			    sha1.update(data, 0, read);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

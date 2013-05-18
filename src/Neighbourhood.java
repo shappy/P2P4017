@@ -22,9 +22,6 @@ public class Neighbourhood
 	
 	private static final int port = 4018;
 	
-	private static String directory = "c:\\Users\\Etai\\Desktop\\Source";
-
-	
 	private static ArrayList< List<String>> keyTable = new ArrayList< List<String>>();
 	private static ArrayList<String> ipLookup = new ArrayList<String>();
 	
@@ -175,11 +172,6 @@ public class Neighbourhood
 	public static int getPort() 
 	{
 		return port;
-	}
-
-	public static String getDirectory() 
-	{
-		return directory;
 	}
 
 

@@ -1,21 +1,20 @@
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.String;
 
-//Ariel
+//Shappy
 public class FileDownloader implements Runnable 
 {
 	//Data Members
@@ -86,7 +85,7 @@ public class FileDownloader implements Runnable
 		        OwnFileList.setNumberIndices(key, indicesInfo.get(0));
 	        }
 	        
-	        //Number of indices owned by that IP
+	        //must check which ones we own
 	        numberOwnedByIP = indicesInfo.size() - 1;//-1 bc dont include the number of indices info
 	        
 	        for (int i=0; i<numberOwnedByIP; i++)
@@ -96,41 +95,24 @@ public class FileDownloader implements Runnable
 	        	{
 	        		//add that index to the OwnFile object, covert to int
 	        		data = download(indicesInfo.get(i+1), ip_list.get(IP_index));//download that index
-	        		
-	        		Writer output;
-	        		try 
-	        		{
-						output = new BufferedWriter(new FileWriter(Neighbourhood.getDirectory() + "\\sample.txt", true));
-						output.append("\r\n" + data);
-		        		output.close();
-	        		} 
-	        		catch (IOException e) 
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-	        		
-	        		
-	        		OwnFileList.addIndex(key, indicesInfo.get(i+1) );
-	        		protocol.distributeFileKeys(socket);
+	        		OwnFileList.addIndex(key, Integer.parseInt(data));
 	        	}
 	        	
 	        }
 	        
-    		IP_index++;// go to the next IP address if we have downloaded all the indices we need from this IP
+    		IP_index++;// go to the next IP address if we have downloaded all the indices we need
     		
-    		if (OwnFileList.isComplete(key))
-	        {
-	        	System.out.println("The file was downloaded successfuly");
-	        	isFileComplete = true;
-	        }
-    		else if (IP_index == ip_list.size())//if we have checked all of the IP addresses (note we start at 0)
+	        if (IP_index == ip_list.size())//if we have checked all of the IP addresses (note we start at 0)
 	        {
 	        	System.out.println("The entire file was not downloaded due to the parts not existing");
 	        	isFileComplete = true;
 	        }
 	        
-	        
+	        if (true)//TODO function of if we have all of them
+	        {
+	        	System.out.println("The file was downloaded successfuly");
+	        	isFileComplete = true;
+	        }
 
 	      
 	     }
