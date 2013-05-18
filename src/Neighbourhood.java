@@ -5,6 +5,7 @@ public class Neighbourhood
 {
 	//Data members
 	// i think these must all be keys(ariel)
+	private static String directory = "c:\\Users\\Etai\\Desktop\\Source";
 	private static String myId = "1";
 	private static String myIp;
 
@@ -20,7 +21,7 @@ public class Neighbourhood
 	private static String prePreId;
 	private static String prePreIp;
 	
-	private static final int port = 5022;
+	private static final int port = 5025;
 	
 	private static ArrayList< List<String>> keyTable = new ArrayList< List<String>>();
 	private static ArrayList<String> ipLookup = new ArrayList<String>();
@@ -172,6 +173,11 @@ public class Neighbourhood
 	public static int getPort() 
 	{
 		return port;
+	}
+
+	public static String getDirectory() {
+		// TODO Auto-generated method stub
+		return directory;
 	}
 
 

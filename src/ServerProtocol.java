@@ -114,11 +114,12 @@ public class ServerProtocol {
         }
 
         else if(command_part.equals("REQUEST")) //greg
-        {         
+        { 
+        	System.out.println("ive been requested");
             indexURL = "/" + hash_part + "/" + index_part; //return the URL where the index can be retrieved
             IndexURLDirectory = index_part;
             ServeFileIndex(indexURL); //create the http server to serve the file index at the specific URL
-            response = "ACK " + indexURL;
+            response = ("ACK " + indexURL);
             //TODO index URL real thing
         }
 
