@@ -25,6 +25,8 @@ public class ClientProtocol
 	private boolean isFirstMessage = true;
 	private String [] string_array = null;
 	
+	private static boolean firstDistribute = true;
+	
 	//Socket socket = new Socket();//initialise socket object to use throughout
 	PrintWriter sender = null;//init sender
 	BufferedReader receiver = null;//init receiver
@@ -32,7 +34,7 @@ public class ClientProtocol
 	String command_part = null; //First section of any message - caps section of the message
 	String ip_part = null;//Second section of any message received - The ip string part of the message
 	String hash_part = null;//Third section of any message received - The hashed part of the message
-	List<String> keyList = new ArrayList<>();//list of ip's which store required file 
+	List<String> keyList = new ArrayList<String>();//list of ip's which store required file 
 	
 	
 	//Function to get the initial supernode ID which also means we have started the sequence and must get random number
@@ -227,8 +229,21 @@ public class ClientProtocol
 		boolean isKeyStored = false;
 		String response = null;
 		
-		List<String> fileKeys = getFileKeysFromDirectory("c:\\Users\\Etai\\Desktop\\Source");
+		//If this is the first time we are calling it
+		if(firstDistribute)
+		{
+			firstDistribute = false;
+			//fileKeys contains all the files we own
+			List<String> fileKeys = getFileKeysFromDirectory(Neighbourhood.getDirectory());
+			for (int i=0; i<fileKeys.size(); i++)
+			{
+				OwnFileList.addFile(fileKeys.get(i));//add the key to the list
+				OwnFileList.setNumberIndices(fileKeys.get(i), 10);//add the number of indices to the list
+			}
+			
+		}
 		
+		List<String> fileKeys = OwnFileList.getUndistributedKeyList();
 		//Store every key in the list (Greg)
 		for (int i=0; i<fileKeys.size(); i++)
 		{

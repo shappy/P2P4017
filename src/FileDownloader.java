@@ -1,9 +1,12 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
@@ -93,7 +96,23 @@ public class FileDownloader implements Runnable
 	        	{
 	        		//add that index to the OwnFile object, covert to int
 	        		data = download(indicesInfo.get(i+1), ip_list.get(IP_index));//download that index
+	        		
+	        		Writer output;
+	        		try 
+	        		{
+						output = new BufferedWriter(new FileWriter(Neighbourhood.getDirectory() + "\\sample.txt", true));
+						output.append("\r\n" + data);
+		        		output.close();
+	        		} 
+	        		catch (IOException e) 
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	        		
+	        		
 	        		OwnFileList.addIndex(key, indicesInfo.get(i+1) );
+	        		protocol.distributeFileKeys(socket);
 	        	}
 	        	
 	        }
