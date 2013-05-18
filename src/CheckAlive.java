@@ -17,7 +17,7 @@ public class CheckAlive implements Runnable
 	private final int timeoutDuration = 15000; //milliseconds
 	private final int checkAlivePause = 3000; //milliseconds
 	private ClientProtocol protocol;
-	List<String> trackingIps = new ArrayList<String>();
+	List<String> keyIndex = new ArrayList<String>();
 	private Socket socket = null;
 	private PrintWriter sender = null;
 	private BufferedReader receiver = null;
@@ -59,20 +59,21 @@ public class CheckAlive implements Runnable
 			}
 			
 			//Check that all nodes tracking this node are alive
-			 trackingIps = Neighbourhood.getIpList();
-			 for (int i=0; i<trackingIps.size(); i++)
+			 keyIndex = Neighbourhood.getIpList();
+			 for (int i=0; i<keyIndex.size(); i++)
 			 {
-				 if(trackingIps.get(i) != Neighbourhood.getMyIp())
-				 {
-					 if(!isAlive(trackingIps.get(i)))
-					 {
-						 //the tracking node is dead, redistribute files 
-						 //TODO: Maybe this should go on another thread?
-						 protocol.distributeFileKeys(Neighbourhood.getKeyList(trackingIps.get(i)), socket);
-					 }
-				 }
-
+				 List<String> ipList = Neighbourhood.getKeyList(keyIndex.get(i));
 				 
+				 for(int j = 0; j < ipList.size(); j++)
+				 {
+					 if(ipList.get(j) != Neighbourhood.getMyIp())
+					 {
+						 if(!isAlive(ipList.get(j)))
+						 {
+							 protocol.distributeFileKeys(Neighbourhood.getKeyList(keyIndex.get(i)), socket);
+						 }
+					 }
+				 }				 
 			 }
 			
 		}

@@ -50,14 +50,16 @@ public class Client implements Runnable
 			catch (IOException e) {
 				e.printStackTrace();
 			}
-			System.out.println("Client is sending: " + protocol.sendJoin());
+			System.out.println("My client is sending: " + protocol.sendJoin());
 	        sender.println( protocol.sendJoin() );//the protocol decides which message to send within 'join algorithm'
 	        
 	        try 
 	        {
-				//System.out.println("Client is receiving: " + receiver.readLine());
-				IP = protocol.receiveJoin( receiver.readLine() );//the protocol returns the next IP to talk to
-			} 
+	        	String response = receiver.readLine();
+				//IP = protocol.receiveJoin( receiver.readLine() );//the protocol returns the next IP to talk to
+	        	IP = protocol.receiveJoin(response);
+	        	System.out.println("My client is receiving: " + response);
+	        } 
 	        catch (IOException e) 
 	        {
 				e.printStackTrace();
@@ -88,38 +90,29 @@ public class Client implements Runnable
 		//Update your own prepre and sucsuc before checking alive
 		protocol.updateMyNeighbourhood();
 		
+		System.out.println("before distribute");
+		
+		//Seeing if need to wait for all to update neighbourhood.
 		try 
 		{
-			System.out.println("After setting check alive thread");
-			Thread.sleep(300000000);
+			Thread.sleep(1000);
 		} 
 		catch (InterruptedException e) 
 		{
 			e.printStackTrace();
 		}
-		
 		// ETAI code for distributing file keys
 		//TODO hash the files that you own
 		//TODO a check to redistribute file keys. This includes toggling a flag after a download completes 
 		//List<String> list = new ArrayList<String>();
 		//String hash1 = hashFile("file1");
 		//list.add(hash1);
-		protocol.distributeFileKeys(getFileKeysFromDirectory("/Users/arielshappy/Desktop/P2P4017-shappyBranch 3"), socket); //changed function to accept a List<String>, use accordingly
+		protocol.distributeFileKeys(getFileKeysFromDirectory("c:\\Users\\Etai\\My Documents\\GitHub\\P2P4017\\src"), socket); //changed function to accept a List<String>, use accordingly
 		
+		System.out.println("Just before check alive");
 		//Joined overlay, now watch neighbours
-		CheckAlive neighbourhoodWatch = new CheckAlive();//greg
-		
-		try 
-		{
-			System.out.println("After setting check alive thread");
-			Thread.sleep(30000000);
-		} 
-		catch (InterruptedException e) 
-		{
-			e.printStackTrace();
-		}
+		new CheckAlive();//greg
 
-		
 		
 		//Code to wait for user input on what file he/she wants to download
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
@@ -164,7 +157,7 @@ public class Client implements Runnable
 	}
 	
 
-	public String hashFile(String fileName)//string: fileName converted by SHA1 to string of hex
+	public String hashFile(File fileName)//string: fileName converted by SHA1 to string of hex
 	{
 		MessageDigest sha1 = null;
 		FileInputStream fis = null;
@@ -230,7 +223,7 @@ public class Client implements Runnable
 		List<String> fileKeys = new ArrayList<String>();
 		File srcFolder = new File(srcDirectory);
 		
-		String files[] = srcFolder.list();
+		File files[] = srcFolder.listFiles();
 		for (int i = 0; i < files.length; i++)
 		{
 			fileKeys.add(hashFile(files[i]));

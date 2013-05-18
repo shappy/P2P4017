@@ -216,8 +216,7 @@ public class ClientProtocol
 	//Macro function for distributing a single file key
 	//Etai
 	public void distributeFileKeys(List<String> fileKeys, Socket socket)
-	{
-		ip_part = Neighbourhood.getSucSucIp();//Statically access the sucSuccessor ip address		
+	{		
 		boolean isNodeFound = false;
 		boolean isKeyStored = false;
 		String response = null;
@@ -225,8 +224,10 @@ public class ClientProtocol
 		//Store every key in the list (Greg)
 		for (int i=0; i<fileKeys.size(); i++)
 		{
-			//First check if I am responsible for holding this key
-    		if (Integer.parseInt(Neighbourhood.getMyId()) >= Integer.parseInt(fileKeys.get(i)) && (Integer.parseInt(Neighbourhood.getPreId()) < Integer.parseInt(fileKeys.get(i))))
+			ip_part = Neighbourhood.getSucIp();
+			//First check if I am responsible for holding this key with special supernode case
+    		if (Integer.parseInt(Neighbourhood.getMyId()) >= Integer.parseInt(fileKeys.get(i)) 
+    		&& ((Integer.parseInt(Neighbourhood.getPreId()) < Integer.parseInt(fileKeys.get(i))) || (Neighbourhood.isSuperNode())))
     		{
     			DHT.addToDHT(fileKeys.get(i), Neighbourhood.getMyIp());//store that info
     			isKeyStored = true;
@@ -467,6 +468,11 @@ public class ClientProtocol
 
 	private boolean storeKey(String fileKey, Socket socket)//Sends key and returns true if storage is ACKed by server
 	{
+		if(Neighbourhood.getMyIp().equals(ip_part))
+		{
+			DHT.addToDHT(fileKey, ip_part);
+			return true;
+		}
 		try
 		{
 			socket = new Socket(ip_part, Neighbourhood.getPort());

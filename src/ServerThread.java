@@ -30,8 +30,9 @@ public class ServerThread implements Runnable{
            
              //Listen to what the client says
             requestFromClient = receiver.readLine();
+            System.out.println("The other client sent to my server: " + requestFromClient);
             responseToClient = protocol.respond(requestFromClient);
-            System.out.println("The server is sending: " + responseToClient);
+            System.out.println("I as the server is sending: " + responseToClient);
             
             //Respond to the client
             sender.println(responseToClient);
@@ -40,11 +41,11 @@ public class ServerThread implements Runnable{
             sender.close();
             receiver.close();
             client_socket.close();
-            System.out.println("The server thread has completed communication with client");
+            System.out.println("My server thread has completed communication with client");
         } 
 		catch (IOException e) 
 		{
-            System.out.println("Something went wrong in communicating with client");
+            System.out.println("Something went wrong in communicating other client");
             e.printStackTrace();
         }
 		

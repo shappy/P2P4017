@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+
 //Etai
 public class ServerProtocol {
 	
@@ -38,37 +39,54 @@ public class ServerProtocol {
     	else if(command_part.equals("UPDATEPREDECESSOR")){response = "ACK"; Neighbourhood.setPreId(key_part); Neighbourhood.setPreIp(ip_part);}
 
     	else if(command_part.equals("RESPONSIBLEKEY"))
-    	{
-    		
+    	{	
+    		//If I am supernode, key goes to my Pre
+    		//if (Neighbourhood.isSuperNode())
+    		//{
+    		//	response = "THISNODERESPONSIBLE "  + Neighbourhood.getPreIp();
+    		//}
+    		//key between me and Pre goes to me
     		if (Integer.parseInt(Neighbourhood.getMyId()) >= Integer.parseInt(key_part) && (Integer.parseInt(Neighbourhood.getPreId()) < Integer.parseInt(key_part)))
     		{response = "THISNODERESPONSIBLE "  + Neighbourhood.getMyIp();}
 
-    		//if my sucessor's id is < than mine, I am the largest id on the overlay and therefore responsible
-    		else if(Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(Neighbourhood.getMyId()))
-    		{response = "THISNODERESPONSIBLE "  + Neighbourhood.getMyIp();}
-    		
+    		//key between me and Suc goes to Suc
     		else if(Integer.parseInt(Neighbourhood.getSucId()) >= Integer.parseInt(key_part) && Integer.parseInt(Neighbourhood.getMyId()) < Integer.parseInt(key_part))
     		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucIp();}
     		
-    		//if my suc suc id is < than my suc id, my suc suc is the largest id on the overlay and responsible
-    		else if(Integer.parseInt(Neighbourhood.getSucSucId()) < Integer.parseInt(Neighbourhood.getSucId()))
+    		//key between SucSuc and Suc goes to SucSuc
+    		else if(Integer.parseInt(Neighbourhood.getSucSucId()) >= Integer.parseInt(key_part) && Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(key_part))
+    		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucSucIp();}
+    		
+    		//SucSuc is supernode so key goes to Suc
+    		else if(Integer.parseInt(Neighbourhood.getSucSucId()) < Integer.parseInt(Neighbourhood.getSucId()))	
+    		{
+    			//key is larger than Suc
+    			if (Integer.parseInt(Neighbourhood.getSucId()) < Integer.parseInt(key_part))
+    				{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucIp();}
+    			
+    			//key is smaller than Suc
+    			else{response = "ASK " + Neighbourhood.getSucSucIp();}
+    		}
+    		
+    		//Suc is supernode and key is bigger 
+    		else if(Integer.parseInt(Neighbourhood.getMyId()) > Integer.parseInt(Neighbourhood.getSucId()) && Integer.parseInt(Neighbourhood.getMyId()) <= Integer.parseInt(key_part))
+    		{response = "THISNODERESPONSIBLE " + Neighbourhood.getMyIp();}
+    		
+    		//Suc is same as the key
+    		else if(Integer.parseInt(Neighbourhood.getSucId()) == Integer.parseInt(key_part))
     		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucIp();}
     		
-    		else if (Integer.parseInt(Neighbourhood.getSucSucId()) >= Integer.parseInt(key_part))
+    		//SucSuc is same as the key - this is redundant
+    		else if(Integer.parseInt(Neighbourhood.getSucSucId()) == Integer.parseInt(key_part))
     		{response = "THISNODERESPONSIBLE " + Neighbourhood.getSucSucIp();}
-    			
+    		
     		else {response = "ASK " + Neighbourhood.getSucSucIp();}
     	}
     	
     	else if(command_part.equals("STOREKEY"))
     	{
-    		if (Integer.parseInt(Neighbourhood.getMyId()) >= Integer.parseInt(key_part) && !(Integer.parseInt(Neighbourhood.getPreId()) >= Integer.parseInt(key_part)))
-    		{
-    			DHT.addToDHT(key_part, ip_part);
-    			response = "ACK";
-    		}
-    		else 
-    		{response = "ASK " + Neighbourhood.getSucSucIp();}
+    		DHT.addToDHT(key_part, ip_part);
+			response = "ACK";
     	}
     	
     	else if(command_part.equals("NODELIST"))
