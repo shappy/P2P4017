@@ -70,7 +70,7 @@ public class CheckAlive implements Runnable
 					 {
 						 if(!isAlive(ipList.get(j)))
 						 {
-							 protocol.distributeFileKeys(Neighbourhood.getKeyList(keyIndex.get(i)), socket);
+							 protocol.distributeFileKeys(socket);
 						 }
 					 }
 				 }				 

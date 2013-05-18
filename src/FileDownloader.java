@@ -8,13 +8,11 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.String;
 
-//Shappy
+//Ariel
 public class FileDownloader implements Runnable 
 {
 	//Data Members
@@ -85,7 +83,7 @@ public class FileDownloader implements Runnable
 		        OwnFileList.setNumberIndices(key, indicesInfo.get(0));
 	        }
 	        
-	        //must check which ones we own
+	        //Number of indices owned by that IP
 	        numberOwnedByIP = indicesInfo.size() - 1;//-1 bc dont include the number of indices info
 	        
 	        for (int i=0; i<numberOwnedByIP; i++)
@@ -95,24 +93,25 @@ public class FileDownloader implements Runnable
 	        	{
 	        		//add that index to the OwnFile object, covert to int
 	        		data = download(indicesInfo.get(i+1), ip_list.get(IP_index));//download that index
-	        		OwnFileList.addIndex(key, Integer.parseInt(data));
+	        		OwnFileList.addIndex(key, indicesInfo.get(i+1) );
 	        	}
 	        	
 	        }
 	        
-    		IP_index++;// go to the next IP address if we have downloaded all the indices we need
+    		IP_index++;// go to the next IP address if we have downloaded all the indices we need from this IP
     		
-	        if (IP_index == ip_list.size())//if we have checked all of the IP addresses (note we start at 0)
+    		if (OwnFileList.isComplete(key))
+	        {
+	        	System.out.println("The file was downloaded successfuly");
+	        	isFileComplete = true;
+	        }
+    		else if (IP_index == ip_list.size())//if we have checked all of the IP addresses (note we start at 0)
 	        {
 	        	System.out.println("The entire file was not downloaded due to the parts not existing");
 	        	isFileComplete = true;
 	        }
 	        
-	        if (true)//TODO function of if we have all of them
-	        {
-	        	System.out.println("The file was downloaded successfuly");
-	        	isFileComplete = true;
-	        }
+	        
 
 	      
 	     }

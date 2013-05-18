@@ -227,7 +227,7 @@ public class ClientProtocol
 		boolean isKeyStored = false;
 		String response = null;
 		
-		List<String>list = getFileKeysFromDirectory("c:\\Users\\Etai\\Desktop\\Source");
+		List<String> fileKeys = getFileKeysFromDirectory("c:\\Users\\Etai\\Desktop\\Source");
 		
 		//Store every key in the list (Greg)
 		for (int i=0; i<fileKeys.size(); i++)
