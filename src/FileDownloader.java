@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -18,7 +19,7 @@ public class FileDownloader implements Runnable
 {
 	//Data Members
 	Thread t;
-	List<String> key_list = null;
+	List<String> ip_list = new ArrayList<String>();
 	String key = "";
 	
 	//private Neighbourhood neighbours;
@@ -28,10 +29,10 @@ public class FileDownloader implements Runnable
 	private BufferedReader receiver = null;
 
 	//Functions
-	public FileDownloader(String key, List<String> key_list)
+	public FileDownloader(String key, List<String> ip_list)
 	{
 		t = new Thread(this); //Assign this object to its own thread
-		this.key_list = key_list;
+		this.ip_list = ip_list;
 		this.key = key;
 		t.start();
 	}
@@ -40,9 +41,13 @@ public class FileDownloader implements Runnable
 	{
 		boolean isFileComplete = false;
 		int IP_index = 0;
-		
-		List<Integer> own_indices = new ArrayList<Integer>();//TODO get own indices here
 		List<Integer> indicesInfo = new ArrayList<Integer>();
+		boolean firstRequest = true;
+		int numberOfIndices = 0;
+		int numberOwnedByIP = 0;
+		
+		OwnFileList.addFile(key);// add the key to the list although it doesnt contain anything yet
+
 		
 		while(!isFileComplete)
 		{
@@ -51,7 +56,7 @@ public class FileDownloader implements Runnable
 			
 			try 
 			{
-				socket = new Socket(key_list.get(IP_index), Neighbourhood.getPort());
+				socket = new Socket(ip_list.get(IP_index), Neighbourhood.getPort());
 				sender = new PrintWriter(socket.getOutputStream(), true);
 		        receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			} 
@@ -73,23 +78,31 @@ public class FileDownloader implements Runnable
 				e.printStackTrace();
 			}
 	        
-
-	        //Find which of the indices we don't have from this IP.
-	        //Need the list of indices for each file that we own.
-	        int numberOfIndices = indicesInfo.get(0);
-	        //TODO save this value if our one doesnt know yet
-	        
-	        int size = indicesInfo.size() - 1;//-1 bc dont include the number of indices info
-	        
-	        for (int i=0; i<size; i++)
+	        //If this is the first time we are asking for a part of this file, save the number of indices it consists of
+	        if (firstRequest)
 	        {
-	        	if (!own_indices.contains( indicesInfo.get(i) ) ) //If we don't own it
-	        		download(i, key_list.get(IP_index));//download that index
+	        	firstRequest = false;
+		        OwnFileList.setNumberIndices(key, indicesInfo.get(0));
+	        }
+	        
+	        //must check which ones we own
+	        numberOwnedByIP = indicesInfo.size() - 1;//-1 bc dont include the number of indices info
+	        
+	        for (int i=0; i<numberOwnedByIP; i++)
+	        {
+	        	String data;
+	        	if (!OwnFileList.isOwned(key, indicesInfo.get(i+1) ) ) //If we don't own it
+	        	{
+	        		//add that index to the OwnFile object, covert to int
+	        		data = download(indicesInfo.get(i+1), ip_list.get(IP_index));//download that index
+	        		OwnFileList.addIndex(key, Integer.parseInt(data));
+	        	}
+	        	
 	        }
 	        
     		IP_index++;// go to the next IP address if we have downloaded all the indices we need
     		
-	        if (IP_index == key_list.size())//if we have checked all of the IP addresses (note we start at 0)
+	        if (IP_index == ip_list.size())//if we have checked all of the IP addresses (note we start at 0)
 	        {
 	        	System.out.println("The entire file was not downloaded due to the parts not existing");
 	        	isFileComplete = true;
@@ -107,10 +120,12 @@ public class FileDownloader implements Runnable
 		
 	}
 	
-	public void download(int index, String ip)
+	public String download(int index, String ip)
 	{
-		String port = "";
-		
+		String indexDirectory = "";
+		String downloadedIndex;
+		String data = "";
+
 		try 
 		{
 			socket = new Socket(ip, Neighbourhood.getPort());
@@ -123,45 +138,58 @@ public class FileDownloader implements Runnable
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-        sender.println( protocol.getPortNum(key, index) );
+        sender.println( protocol.requestIndex(key, index) );
         
         try 
         {
-			port = protocol.processPortResponse( receiver.readLine() );//the protocol returns the next IP to talk to
+        	indexDirectory = protocol.processRequestIndexResponse( receiver.readLine() );
 		} 
         catch (IOException e) 
         {
 			e.printStackTrace();
 		}
 		
-        if (port.equals("REJECT"))
+        if (indexDirectory.equals("REJECT"))
+        {
         	System.out.println("Server has rejected request to download index: " + Integer.toString(index));
+        }
+        else
+        {
 
-		
-	
-   		FileOutputStream fos;
-		try 
-		{
-			URL url = new URL(port); //TODO probably should actually return the URL!
-	    	ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-			fos = new FileOutputStream(key  + ":" + Integer.toString(index));
-	   		fos.getChannel().transferFrom(rbc, 0, 1 << 24);
-	   		
-	   		//TODO tell the index keeping class that you have this index now
-	   		//TODO create trigger to broadcoast the new acquisition to the world if the first of the new file (otherwise they will ask anyway)
+        	FileOutputStream fos;
+    		try 
+    		{
+    			String dir = "http://" + ip + ":" + Neighbourhood.getPort() + indexDirectory;
+    			URL url = new URL(dir); //TODO probably should actually return the URL!
+    			URLConnection HttpConnection =  url.openConnection(); 
+    			
+    			BufferedReader in = new BufferedReader(
+    					new InputStreamReader(
+    							HttpConnection.getInputStream()));
+    			
+    			
+    			while((data = in.readLine()) != null)
+    			{
+    			   in.close();
+    			}
+    	   		
 
-		} 
-		catch (FileNotFoundException e) 
-		{
-        	System.out.println("Something went wrong in downloading index number" + Integer.toString(index));
-			e.printStackTrace();
-		} 
-		catch (IOException e) 
-		{
-        	System.out.println("Something went wrong in downloading index number" + Integer.toString(index));
-			e.printStackTrace();
-		}
-		
+    		} 
+    		catch (FileNotFoundException e) 
+    		{
+            	System.out.println("Something went wrong in downloading index number" + Integer.toString(index));
+    			e.printStackTrace();
+    		} 
+    		catch (IOException e) 
+    		{
+            	System.out.println("Something went wrong in downloading index number" + Integer.toString(index));
+    			e.printStackTrace();
+    		}
+    		
+
+        	
+        }
+		return data;	
 		
 		
 	}

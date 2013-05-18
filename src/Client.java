@@ -107,7 +107,7 @@ public class Client implements Runnable
 		//List<String> list = new ArrayList<String>();
 		//String hash1 = hashFile("file1");
 		//list.add(hash1);
-		protocol.distributeFileKeys(getFileKeysFromDirectory("c:\\Users\\Etai\\My Documents\\GitHub\\P2P4017\\src"), socket); //changed function to accept a List<String>, use accordingly
+		protocol.distributeFileKeys(socket); //changed function to accept a List<String>, use accordingly
 		
 		System.out.println("Just before check alive");
 		//Joined overlay, now watch neighbours
@@ -117,7 +117,7 @@ public class Client implements Runnable
 		//Code to wait for user input on what file he/she wants to download
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 		String key ="";  
-		List<String> key_list = null;
+		List<String> ip_list = null;
 		FileDownloader file_downloader = null;
 
 		while(!key.equalsIgnoreCase("exit"))
@@ -133,8 +133,8 @@ public class Client implements Runnable
 			}
 			
 			protocol.retrieveFileKeyList(key, socket);
-			key_list = protocol.getKeyList();
-			file_downloader = new FileDownloader(key, key_list);//send the key list and the files key to be downloaded
+			ip_list = protocol.getKeyList();
+			file_downloader = new FileDownloader(key, ip_list);//send the key list and the files key to be downloaded
 		}
 		
 		
@@ -150,85 +150,7 @@ public class Client implements Runnable
 		catch (IOException e) 
 		{
 			e.printStackTrace();
-		}
-		
-		
-		
-	}
-	
-
-	public String hashFile(File fileName)//string: fileName converted by SHA1 to string of hex
-	{
-		MessageDigest sha1 = null;
-		FileInputStream fis = null;
-		try 
-		{
-			sha1 = MessageDigest.getInstance("SHA1");
-		} 
-		catch (NoSuchAlgorithmException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		try 
-		{
-			fis = new FileInputStream(fileName);
-		} 
-		catch (FileNotFoundException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		byte[] data = new byte[1024];
-        int read = 0; 
-        try 
-        {
-			while ((read = fis.read(data)) != -1) 
-			{
-			    sha1.update(data, 0, read);
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		};
-		byte[] hashBytes = sha1.digest();
-		BigInteger bigInt_hash = new BigInteger(hashBytes);
-		BigInteger bigInt_swarmSize = new BigInteger(String.valueOf(Neighbourhood.getSwarmSize()));
-		BigInteger bigInt_id = bigInt_hash.mod(bigInt_swarmSize);
-		/*
-		StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < hashBytes.length; i++) 
-        {
-          buffer.append(Integer.toString((hashBytes[i] & 0xff) + 0x100, 16).substring(1));
-        }
-        */
-        try 
-        {
-			fis.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-        //String fileHash = buffer.toString();
-        
-        //TODO mod by swarm size to get int representation  
-        return bigInt_id.toString();//must be a string
-        
-        //return Long.parseLong(fileHash, 16);
-	}
-	
-	public List<String> getFileKeysFromDirectory(String srcDirectory)
-	{
-		List<String> fileKeys = new ArrayList<String>();
-		File srcFolder = new File(srcDirectory);
-		
-		File files[] = srcFolder.listFiles();
-		for (int i = 0; i < files.length; i++)
-		{
-			fileKeys.add(hashFile(files[i]));
-		}
-		return fileKeys;
+		}	
 	}
 }
 

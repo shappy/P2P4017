@@ -1,10 +1,16 @@
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -26,7 +32,7 @@ public class ClientProtocol
 	String command_part = null; //First section of any message - caps section of the message
 	String ip_part = null;//Second section of any message received - The ip string part of the message
 	String hash_part = null;//Third section of any message received - The hashed part of the message
-	List<String> keyList = null;//list of ip's which store required file 
+	List<String> keyList = new ArrayList<>();//list of ip's which store required file 
 	
 	
 	//Function to get the initial supernode ID which also means we have started the sequence and must get random number
@@ -215,11 +221,13 @@ public class ClientProtocol
 	
 	//Macro function for distributing a single file key
 	//Etai
-	public void distributeFileKeys(List<String> fileKeys, Socket socket)
+	public void distributeFileKeys(Socket socket)
 	{		
 		boolean isNodeFound = false;
 		boolean isKeyStored = false;
 		String response = null;
+		
+		List<String>list = getFileKeysFromDirectory("c:\\Users\\Etai\\Desktop\\Source");
 		
 		//Store every key in the list (Greg)
 		for (int i=0; i<fileKeys.size(); i++)
@@ -279,7 +287,7 @@ public class ClientProtocol
 	//Etai
 	public void retrieveFileKeyList(String fileKey, Socket socket)
 	{
-		ip_part = Neighbourhood.getSucSucId();//Statically access the sucSuccessor ip address		
+		ip_part = Neighbourhood.getSucId();//Statically access the sucSuccessor ip address		
 		boolean isNodeFound = false;
 		boolean isKeyListRetrieved = false;
 		String response = null;
@@ -328,7 +336,7 @@ public class ClientProtocol
 	}
 	
 	//Shappy
-	public String processPortResponse(String message) 
+	public String processRequestIndexResponse(String message) 
 	{
 		string_array = message.split(" "); //split the string by the " " = space parameter if only one word it returns that word
 		if (string_array[0].equals("REJECT"))
@@ -385,9 +393,9 @@ public class ClientProtocol
 		return "REQUESTINDEXSOFHASH " + key;
 	}
 	
-	public String getPortNum(String hash, int index) 
+	public String requestIndex(String key, int index) 
 	{
-		return "REQUEST " + hash + " " + Integer.toString(index);
+		return "REQUEST " + key + " " + Integer.toString(index);
 	}
 	
 	
@@ -556,7 +564,80 @@ public class ClientProtocol
 		return string_array[2];
 	}
 
+	public static List<String> getFileKeysFromDirectory(String srcDirectory)
+	{
+		List<String> fileKeys = new ArrayList<String>();
+		File srcFolder = new File(srcDirectory);
+		
+		File files[] = srcFolder.listFiles();
+		for (int i = 0; i < files.length; i++)
+		{
+			fileKeys.add(hashFile(files[i]));
+		}
+		return fileKeys;
+	}
+	
+	public static String hashFile(File fileName)//string: fileName converted by SHA1 to string of hex
+	{
+		MessageDigest sha1 = null;
+		FileReader fis = null;
+		try 
+		{
+			sha1 = MessageDigest.getInstance("SHA1");
+		} 
+		catch (NoSuchAlgorithmException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
+		try 
+		{
+			fis = new FileReader(fileName);
+		} 
+		catch (FileNotFoundException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		char[] characters = new char[20];
+        int read = 0; 
+        try 
+        {
+			while ((read = fis.read(characters)) != -1) 
+			{		
+				String temp = new String(characters);
+				String[] temp2 = temp.split(" ");
+				int[] temp3 = new int[temp2.length - 1];
+				for (int i =0; i < temp2.length - 1 ; i++)
+				{
+					temp3[i] = Integer.parseInt(temp2[i]);
+					System.out.println(temp3[i]);
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		};
+		byte[] hashBytes = sha1.digest();
+		BigInteger bigInt_hash = new BigInteger(hashBytes);
+		BigInteger bigInt_swarmSize = new BigInteger("50");
+		BigInteger bigInt_id = bigInt_hash.mod(bigInt_swarmSize);
+		
+        try 
+        {
+			fis.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+        //String fileHash = buffer.toString();
+        
+        //TODO mod by swarm size to get int representation  
+        return bigInt_id.toString();//must be a string
+        
+        //return Long.parseLong(fileHash, 16);
+	}
 	
 
 	

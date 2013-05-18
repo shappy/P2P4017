@@ -103,9 +103,7 @@ public class ServerProtocol {
     	
     	else if(command_part.equals("REQUESTINDEXSOFHASH")) //greg
         {
-            //TODO: from the OwnFiles object (or whatever), return the indices of the file segments that you posses 
-            //for the file key_part 
-
+            response = "ACK " + OwnFileList.getNumberOfIndices(key_part) + " " + OwnFileList.getIndexList(key_part).toString();
         }
 
         else if(command_part.equals("REQUEST")) //greg
